@@ -306,41 +306,7 @@ CheckoutPage --> OrdersPage
 
 ---
 
-## 6. Infrastructure Overview
-
-```mermaid
-graph TB
-subgraph Dev["Local Development"]
-DevFE["npm run dev (port 5173)"]
-DevBE["python manage.py runserver (port 8000)"]
-SQLite["SQLite"]
-DevFE <-->|CORS| DevBE
-DevBE --> SQLite
-end
-
-subgraph Prod["Production (Planned)"]
-LB["Load Balancer"]
-FEContainer["Frontend Container (Nginx + React build)"]
-BEContainer["Backend Container (Gunicorn + Django)"]
-MySQL["MySQL"]
-LB --> FEContainer
-LB --> BEContainer
-BEContainer --> MySQL
-end
-
-subgraph Services["External Services"]
-Gmail["Gmail SMTP"]
-StripeS["Stripe API"]
-end
-
-DevBE --> Gmail
-BEContainer --> Gmail
-BEContainer --> StripeS
-```
-
----
-
-## 7. Technology Stack Summary
+## 6. Technology Stack Summary
 
 | Component | Technology | Status |
 | ---------------- | --------------------------- | ------------ |
