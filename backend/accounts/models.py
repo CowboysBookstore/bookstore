@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import random
-import secrets
 from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
@@ -48,21 +47,29 @@ class User(AbstractUser):
 
     objects = UserManager()
 
-    def __str__(self) -> str:  # pragma: no cover - debug aid
+    def __str__(self) -> str:
         return self.email
 
 
 class ActivationCode(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="activation_codes")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="activation_codes",
+    )
     code = models.CharField(max_length=6)
     expires_at = models.DateTimeField()
     used = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     @classmethod
-    def create_for_user(cls, user: User, lifetime: timedelta = timedelta(hours=24)) -> "ActivationCode":
+    def create_for_user(
+        cls, user: User, lifetime: timedelta = timedelta(hours=24)
+    ) -> "ActivationCode":
         code = f"{random.randint(0, 999999):06d}"
-        return cls.objects.create(user=user, code=code, expires_at=timezone.now() + lifetime)
+        return cls.objects.create(
+            user=user, code=code, expires_at=timezone.now() + lifetime
+        )
 
     def is_valid(self) -> bool:
         return not self.used and self.expires_at >= timezone.now()
@@ -73,16 +80,24 @@ class ActivationCode(models.Model):
 
 
 class PasswordResetCode(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="password_reset_codes")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="password_reset_codes",
+    )
     code = models.CharField(max_length=6)
     expires_at = models.DateTimeField()
     used = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     @classmethod
-    def create_for_user(cls, user: User, lifetime: timedelta = timedelta(hours=24)) -> "PasswordResetCode":
+    def create_for_user(
+        cls, user: User, lifetime: timedelta = timedelta(hours=24)
+    ) -> "PasswordResetCode":
         code = f"{random.randint(0, 999999):06d}"
-        return cls.objects.create(user=user, code=code, expires_at=timezone.now() + lifetime)
+        return cls.objects.create(
+            user=user, code=code, expires_at=timezone.now() + lifetime
+        )
 
     def is_valid(self) -> bool:
         return not self.used and self.expires_at >= timezone.now()

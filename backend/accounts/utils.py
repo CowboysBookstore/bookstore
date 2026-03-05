@@ -1,8 +1,5 @@
-"""Auth-focused utilities for Phase 1.
+"""Utility helpers for account operations."""
 
-- validate_mcneese_email: enforce @mcneese.edu domain
-- generate_jwt_pair: produce access/refresh tokens with shared signing config
-"""
 from __future__ import annotations
 
 import re

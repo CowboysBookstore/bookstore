@@ -1,5 +1,5 @@
-# Copyright 2026 Cowboy Bookstore — Apache 2.0
 """Django admin registration for accounts models."""
+
 from __future__ import annotations
 
 from django.contrib import admin
@@ -15,7 +15,13 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     """Custom admin for the email-based User model."""
 
     ordering = ("email",)
-    list_display = ("email", "first_name", "last_name", "show_active_status", "is_staff")
+    list_display = (
+        "email",
+        "first_name",
+        "last_name",
+        "show_active_status",
+        "is_staff",
+    )
     list_filter = ("is_active", "is_staff", "is_superuser")
     search_fields = ("email", "first_name", "last_name")
     list_filter_submit = True
@@ -23,14 +29,34 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Personal info", {"fields": ("first_name", "last_name")}),
-        ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
     add_fieldsets = (
-        (None, {
-            "classes": ("wide",),
-            "fields": ("email", "first_name", "last_name", "password1", "password2"),
-        }),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "email",
+                    "first_name",
+                    "last_name",
+                    "password1",
+                    "password2",
+                ),
+            },
+        ),
     )
 
     @display(
@@ -43,7 +69,13 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
 
 @admin.register(ActivationCode)
 class ActivationCodeAdmin(ModelAdmin):
-    list_display = ("user", "short_code", "expires_at", "show_used_status", "created_at")
+    list_display = (
+        "user",
+        "short_code",
+        "expires_at",
+        "show_used_status",
+        "created_at",
+    )
     list_filter = ("used",)
     search_fields = ("user__email", "code")
     raw_id_fields = ("user",)
@@ -52,7 +84,7 @@ class ActivationCodeAdmin(ModelAdmin):
 
     @display(description="Code")
     def short_code(self, obj):
-        return f"{obj.code[:12]}…" if len(obj.code) > 12 else obj.code
+        return obj.code
 
     @display(
         description="Used",
@@ -64,7 +96,13 @@ class ActivationCodeAdmin(ModelAdmin):
 
 @admin.register(PasswordResetCode)
 class PasswordResetCodeAdmin(ModelAdmin):
-    list_display = ("user", "short_code", "expires_at", "show_used_status", "created_at")
+    list_display = (
+        "user",
+        "short_code",
+        "expires_at",
+        "show_used_status",
+        "created_at",
+    )
     list_filter = ("used",)
     search_fields = ("user__email", "code")
     raw_id_fields = ("user",)
@@ -73,7 +111,7 @@ class PasswordResetCodeAdmin(ModelAdmin):
 
     @display(description="Code")
     def short_code(self, obj):
-        return f"{obj.code[:12]}…" if len(obj.code) > 12 else obj.code
+        return obj.code
 
     @display(
         description="Used",

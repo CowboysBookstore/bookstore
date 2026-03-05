@@ -26,9 +26,9 @@ class JWTAuthentication(authentication.BaseAuthentication):
                 audience=settings.JWT_SETTINGS["AUDIENCE"],
                 issuer=settings.JWT_SETTINGS["ISSUER"],
             )
-        except jwt.ExpiredSignatureError as exc:  # pragma: no cover - smoke-tested via utils
+        except jwt.ExpiredSignatureError as exc:
             raise exceptions.AuthenticationFailed("Token expired") from exc
-        except jwt.InvalidTokenError as exc:  # pragma: no cover - smoke-tested via utils
+        except jwt.InvalidTokenError as exc:
             raise exceptions.AuthenticationFailed("Invalid token") from exc
 
         user_id = payload.get("sub")

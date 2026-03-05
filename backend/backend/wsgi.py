@@ -1,4 +1,5 @@
 """WSGI config for backend project."""
+
 from __future__ import annotations
 
 import os

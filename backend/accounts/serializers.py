@@ -21,7 +21,9 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate_email(self, value: str) -> str:
         if not validate_mcneese_email(value):
-            raise serializers.ValidationError("Registration is restricted to @mcneese.edu emails.")
+            raise serializers.ValidationError(
+                "Registration is restricted to @mcneese.edu emails."
+            )
         if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError("Email already registered.")
         return value.lower()
@@ -101,7 +103,9 @@ class ForgotPasswordSerializer(serializers.Serializer):
         return value.lower()
 
     def create(self, validated_data):
-        reset = PasswordResetCode.create_for_user(self.user, lifetime=timedelta(hours=24))
+        reset = PasswordResetCode.create_for_user(
+            self.user, lifetime=timedelta(hours=24)
+        )
         send_password_reset_email(self.user.email, reset.code)
         return {"detail": "Password reset code sent."}
 

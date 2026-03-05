@@ -1,8 +1,5 @@
-"""Django settings for Cowboy Online Bookstore.
+"""Django settings for Cowboy Online Bookstore."""
 
-Phase 1: Auth-only, localhost development. Default DB is SQLite for easy bootstrap;
-configure MySQL via env when available.
-"""
 from __future__ import annotations
 
 import os
@@ -13,12 +10,13 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load .env from project root (one level above backend/)
 load_dotenv(BASE_DIR.parent / ".env")
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-change-me")
 DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
-ALLOWED_HOSTS: list[str] = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS: list[str] = os.getenv(
+    "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1"
+).split(",")
 
 INSTALLED_APPS = [
     "unfold",
@@ -65,8 +63,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-# Development: use built-in SQLite. For future MySQL/Postgres, add env-driven
-# configuration here and document migrations before switching.
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -77,7 +73,9 @@ DATABASES = {
 AUTH_USER_MODEL = "accounts.User"
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -91,7 +89,9 @@ USE_TZ = True
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
 EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "1025"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
@@ -107,7 +107,9 @@ REST_FRAMEWORK = {
 }
 
 JWT_SETTINGS = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.getenv("JWT_ACCESS_MINUTES", "15"))),
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=int(os.getenv("JWT_ACCESS_MINUTES", "15"))
+    ),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("JWT_REFRESH_DAYS", "7"))),
     "ALGORITHM": os.getenv("JWT_ALGORITHM", "HS256"),
     "SIGNING_KEY": os.getenv("JWT_SIGNING_KEY", SECRET_KEY),
@@ -115,22 +117,16 @@ JWT_SETTINGS = {
     "AUDIENCE": os.getenv("JWT_AUDIENCE", "cowboy-users"),
 }
 
-# ---------------------------------------------------------------------------
-# CORS — allow the Vite dev server to reach the API during local development.
-# ---------------------------------------------------------------------------
 CORS_ALLOWED_ORIGINS = os.getenv(
     "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
 ).split(",")
 CORS_ALLOW_CREDENTIALS = True
 
-# ---------------------------------------------------------------------------
-# Unfold Admin — McNeese-branded admin dashboard
-# ---------------------------------------------------------------------------
 UNFOLD = {
     "SITE_TITLE": "Cowboy Bookstore",
     "SITE_HEADER": "Cowboy Bookstore Admin",
     "SITE_URL": "http://localhost:5173",
-    "SITE_SYMBOL": "menu_book",  # Material Symbols icon
+    "SITE_SYMBOL": "menu_book",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
     "THEME": "light",

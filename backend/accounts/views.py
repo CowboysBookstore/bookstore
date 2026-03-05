@@ -21,7 +21,12 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"detail": "Registration successful. Check your email for the activation code."}, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "detail": "Registration successful. Check your email for the activation code."
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class ActivationVerifyView(APIView):
@@ -54,7 +59,9 @@ class ForgotPasswordView(APIView):
         serializer = ForgotPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"detail": "Password reset code sent."}, status=status.HTTP_200_OK)
+        return Response(
+            {"detail": "Password reset code sent."}, status=status.HTTP_200_OK
+        )
 
 
 class ResetPasswordView(APIView):
