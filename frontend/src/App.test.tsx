@@ -3,36 +3,36 @@ import { MemoryRouter } from "react-router-dom";
 import App from "./App";
 
 describe("App", () => {
-  it("renders the home page by default with bookstore branding", () => {
+  it("renders the home page by default with the storefront hero", () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
       </MemoryRouter>
     );
     expect(
-      screen.getByText(/Your campus bookstore, online/i)
+      screen.getByText(/Search, save, cart, and checkout from one McNeese storefront/i)
     ).toBeInTheDocument();
   });
 
-  it("navigates to the login page", () => {
+  it("navigates to the search page", () => {
     render(
-      <MemoryRouter initialEntries={["/login"]}>
+      <MemoryRouter initialEntries={["/products"]}>
         <App />
       </MemoryRouter>
     );
     expect(
-      screen.getByRole("heading", { name: /Sign in/i })
+      screen.getByRole("heading", { name: /Search the shelves/i })
     ).toBeInTheDocument();
   });
 
-  it("navigates to the register page", () => {
+  it("navigates to the cart page", () => {
     render(
-      <MemoryRouter initialEntries={["/register"]}>
+      <MemoryRouter initialEntries={["/cart"]}>
         <App />
       </MemoryRouter>
     );
     expect(
-      screen.getByRole("heading", { name: /Create your account/i })
+      screen.getByRole("heading", { name: /Your cart/i })
     ).toBeInTheDocument();
   });
 
@@ -43,7 +43,7 @@ describe("App", () => {
       </MemoryRouter>
     );
     expect(
-      screen.getByText(/Your campus bookstore, online/i)
+      screen.getByText(/Search, save, cart, and checkout from one McNeese storefront/i)
     ).toBeInTheDocument();
   });
 });

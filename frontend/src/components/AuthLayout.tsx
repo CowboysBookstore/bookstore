@@ -51,7 +51,7 @@ export default function AuthLayout({ children, title, subtitle }: Props) {
       </main>
 
       <footer className="border-t border-slate-100 px-6 py-4 text-center text-xs text-slate-400">
-        © 2026 McNeese State University · Cowboy Bookstore
+        Copyright 2026 McNeese State University - Cowboy Bookstore
       </footer>
     </div>
   );
