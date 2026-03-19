@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { seededOrders, storefrontProducts } from "./data";
+import { seededOrders } from "./data";
+import axios from "axios";
+import type { AxiosResponse } from "axios";
 import type {
   CartLine,
   FulfillmentMethod,
@@ -76,6 +78,42 @@ export function StorefrontProvider({
   const [cart, setCart] = useStoredState<CartLine[]>(CART_KEY, []);
   const [wishlist, setWishlist] = useStoredState<string[]>(WISHLIST_KEY, []);
   const [orders, setOrders] = useStoredState<OrderRecord[]>(ORDERS_KEY, seededOrders);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    axios
+      .get("/api/products/")
+      .then((res: AxiosResponse<any[]>) => {
+        if (mounted) {
+          setProducts(
+            res.data.map((p: any) => ({
+              // use slug when available for stable product URLs
+              id: p.slug || String(p.id),
+              title: p.title,
+              category: (p.category as any) || "Textbooks",
+              price: Number(p.price),
+              description: p.description || "",
+              shortDescription: p.short_description || p.description?.slice(0, 120) || "",
+              badge: p.badge || "",
+              format: p.format || "",
+              stock: p.inventory || 0,
+              rating: p.rating || 4.5,
+              pickupNote: p.pickup_note || "",
+              deliveryNote: p.delivery_note || "",
+              highlights: p.highlights || [],
+              coverGradient: p.cover_gradient || p.coverGradient || "linear-gradient(135deg,#0f172a 0%, #1d4ed8 55%, #60a5fa 100%)",
+            }))
+          );
+        }
+      })
+      .catch(() => {
+        // silently ignore in dev; products remain empty
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const addToCart = (productId: string, quantity = 1) => {
     setCart((current) => {
@@ -151,8 +189,7 @@ export function StorefrontProvider({
     setCart([]);
   };
 
-  const getProduct = (productId: string) =>
-    storefrontProducts.find((product) => product.id === productId);
+  const getProduct = (productId: string) => products.find((product) => product.id === productId);
 
   const placeOrder = (payload: CheckoutPayload) => {
     const orderItems: OrderLine[] = cart.flatMap((line) => {
@@ -213,7 +250,7 @@ export function StorefrontProvider({
   return (
     <StorefrontContext.Provider
       value={{
-        products: storefrontProducts,
+  products,
         cart,
         wishlist,
         orders,

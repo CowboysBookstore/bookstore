@@ -55,20 +55,19 @@ export default function ProductsPage() {
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mcneeseBlue">
-              Search page
+              Products
             </p>
             <h1 className="mt-3 text-4xl font-semibold text-slate-900">
-              Search the shelves
+              Browse products
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
               Browse textbooks, office supplies, tech accessories, and McNeese gear.
-              This page is mock-data driven so the UI can be reviewed before product
-              APIs are connected.
+              Use the search box and sort controls to narrow results.
             </p>
           </div>
 
           <div className="rounded-[28px] bg-slate-50 p-5">
-            <div className="grid gap-4 md:grid-cols-[1fr_190px_160px]">
+            <div className="grid gap-4 md:grid-cols-[1fr_160px]">
               <label className="block text-sm font-medium text-slate-700">
                 Search
                 <input
@@ -79,22 +78,6 @@ export default function ProductsPage() {
                   className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                 />
               </label>
-
-              <label className="block text-sm font-medium text-slate-700">
-                Category
-                <select
-                  value={category}
-                  onChange={(event) => setCategory(event.target.value as CategoryFilter)}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                >
-                  {storefrontCategories.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
               <label className="block text-sm font-medium text-slate-700">
                 Sort
                 <select
@@ -133,7 +116,7 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      <section className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <section className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3 items-stretch">
         {filteredProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

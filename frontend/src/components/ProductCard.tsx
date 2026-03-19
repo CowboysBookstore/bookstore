@@ -8,7 +8,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const isWishlisted = wishlist.includes(product.id);
 
   return (
-    <article className="group overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
       <div
         className="relative h-44 p-5 text-white"
         style={{ background: product.coverGradient }}
@@ -39,7 +39,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </div>
       </div>
 
-      <div className="space-y-4 p-5">
+      <div className="flex flex-1 flex-col justify-between p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-sm text-slate-500">{product.shortDescription}</p>
@@ -49,7 +49,9 @@ export default function ProductCard({ product }: { product: Product }) {
             </p>
           </div>
           <p className="text-lg font-semibold text-slate-900">
-            {formatCurrency(product.price)}
+            <span className="inline-block rounded-full bg-mcneeseGold px-3 py-1 text-sm font-semibold text-slate-900">
+              {formatCurrency(product.price)}
+            </span>
           </p>
         </div>
 
@@ -64,13 +66,26 @@ export default function ProductCard({ product }: { product: Product }) {
           ))}
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
           <Link
             to={`/products/${product.id}`}
             className="flex-1 rounded-full border border-slate-200 px-4 py-2 text-center text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
           >
             View details
           </Link>
+
+          <button
+            type="button"
+            onClick={() => toggleWishlist(product.id)}
+            aria-pressed={isWishlisted}
+            className={`h-10 w-10 flex-shrink-0 rounded-full border border-slate-200 transition flex items-center justify-center text-sm font-semibold ${
+              isWishlisted ? "bg-mcneeseGold text-slate-900" : "bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+            title={isWishlisted ? "Saved" : "Add to wishlist"}
+          >
+            {isWishlisted ? "♥" : "♡"}
+          </button>
+
           <button
             type="button"
             onClick={() => addToCart(product.id)}

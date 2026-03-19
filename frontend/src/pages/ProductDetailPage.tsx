@@ -19,7 +19,7 @@ export default function ProductDetailPage() {
         <section className="rounded-[32px] border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
           <h1 className="text-3xl font-semibold text-slate-900">Product not found</h1>
           <p className="mt-3 text-sm text-slate-500">
-            This mock product does not exist in the sample catalog yet.
+            This product is managed by the backend catalog.
           </p>
           <Link
             to="/products"

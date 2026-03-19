@@ -1,0 +1,13 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies first (will be run at build time; dev mount will override app files)
+COPY package.json package-lock.json* /app/
+RUN npm ci --silent || true
+
+COPY . /app
+
+EXPOSE 5173
+
+CMD ["/bin/sh", "-c", "npm ci && npm run dev -- --host 0.0.0.0"]

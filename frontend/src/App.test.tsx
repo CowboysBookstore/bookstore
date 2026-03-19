@@ -21,7 +21,7 @@ describe("App", () => {
       </MemoryRouter>
     );
     expect(
-      screen.getByRole("heading", { name: /Search the shelves/i })
+      screen.getByRole("heading", { name: /Browse products/i })
     ).toBeInTheDocument();
   });
 

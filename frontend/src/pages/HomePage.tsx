@@ -33,7 +33,7 @@ function FeatureCard({
   return (
     <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mcneeseBlue">
-        Storefront UI
+        Feature
       </p>
       <h3 className="mt-3 text-xl font-semibold text-slate-900">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
@@ -54,10 +54,10 @@ export default function HomePage() {
               Cowboy Online Bookstore
             </p>
             <h1 className="mt-6 max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">
-              Search, save, cart, and checkout from one McNeese storefront.
+              Stripe checkout ready.
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">
-              This UI is built around the project brief: a secure, user-friendly
+              This site is built around the project brief: a secure, user-friendly
               online bookstore where students can browse textbooks and office
               supplies, manage wishlists, and move into checkout with pickup or
               delivery options.
@@ -80,10 +80,10 @@ export default function HomePage() {
 
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               <StatCard
-                value={`${products.length}`}
-                label="Mock products"
-                detail="Textbooks, supplies, gear, and accessories ready for UI testing."
-              />
+                  value={`${products.length}`}
+                  label="Products"
+                  detail="Textbooks, supplies, gear, and accessories from the catalog."
+                />
               <StatCard
                 value={`${wishlistCount}`}
                 label="Wishlist items"
@@ -102,13 +102,13 @@ export default function HomePage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                    Quick overview
+                      Quick overview
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold">Student-first flow</h2>
                 </div>
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
-                  Frontend only
-                </span>
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                    Demo flow
+                  </span>
               </div>
               <div className="mt-6 space-y-4">
                 {[
@@ -136,16 +136,16 @@ export default function HomePage() {
 
       <section className="animate-rise-delay mt-10 grid gap-5 md:grid-cols-3">
         <FeatureCard
-          title="Responsive search experience"
-          description="A dedicated browse page gives students a clear place to search by title, category, or course and scan through product cards quickly."
+          title="Explore catalog"
+          description="Browse the full catalog and open individual product pages for details and availability."
         />
         <FeatureCard
-          title="Wishlist and cart pages"
-          description="Students can keep a shortlist for later, compare items, and move directly into a cart page with quantity updates and totals."
+          title="Student-first flow"
+          description="Search and filter products, save items to a wishlist, and add them to cart with minimal friction."
         />
         <FeatureCard
-          title="Checkout and order tracking"
-          description="The checkout view includes payment, delivery, and pickup UI states, and the orders page shows recent activity after submission."
+          title="Checkout & orders"
+          description="Stripe checkout ready; choose pickup or delivery and review recent orders in the orders page."
         />
       </section>
 
@@ -156,18 +156,18 @@ export default function HomePage() {
               Featured products
             </p>
             <h2 className="mt-2 text-3xl font-semibold text-slate-900">
-              Mock inventory to shape the storefront pages
+              Inventory shown reflects product records from the catalog
             </h2>
           </div>
           <Link
             to="/products"
             className="text-sm font-semibold text-mcneeseBlue transition hover:text-blue-800"
           >
-            Open the full search page
+            See all products
           </Link>
         </div>
 
-        <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
           {featuredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

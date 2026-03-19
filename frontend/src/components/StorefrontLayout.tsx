@@ -100,47 +100,69 @@ export default function StorefrontLayout({
             </Link>
 
             <div className="flex items-center gap-2 lg:hidden">
-              <Link
+              <NavLink
                 to="/wishlist"
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-2 text-sm text-slate-700"
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition ${
+                    isActive
+                      ? "bg-mcneeseBlue text-white shadow-sm"
+                      : "border border-slate-200 text-slate-700 hover:bg-white hover:text-slate-900"
+                  }`
+                }
               >
                 Wishlist
                 <CountPill count={wishlistCount} />
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/cart"
-                className="inline-flex items-center gap-2 rounded-full bg-mcneeseBlue px-3 py-2 text-sm font-semibold text-white"
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition ${
+                    isActive
+                      ? "bg-blue-800 text-white shadow-sm"
+                      : "bg-mcneeseBlue text-white"
+                  }`
+                }
               >
                 Cart
                 <CountPill count={cartCount} />
-              </Link>
+              </NavLink>
             </div>
           </div>
 
-          <nav className="flex flex-wrap items-center gap-2">
+          <nav className="flex flex-wrap items-center gap-2 justify-center">
             <NavItem to="/" label="Home" />
-            <NavItem to="/products" label="Search" />
-            <NavItem to="/wishlist" label="Wishlist" />
-            <NavItem to="/cart" label="Cart" />
+            <NavItem to="/products" label="Products" />
             <NavItem to="/checkout" label="Checkout" />
             <NavItem to="/orders" label="Orders" />
           </nav>
 
           <div className="hidden items-center gap-3 lg:flex">
-            <Link
+            <NavLink
               to="/wishlist"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              className={({ isActive }) =>
+                `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                  isActive
+                    ? "bg-mcneeseBlue text-white shadow-sm"
+                    : "border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                }`
+              }
             >
               Wishlist
               <CountPill count={wishlistCount} />
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               to="/cart"
-              className="inline-flex items-center gap-2 rounded-full bg-mcneeseBlue px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
+              className={({ isActive }) =>
+                `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  isActive
+                    ? "bg-blue-800 text-white shadow-sm"
+                    : "bg-mcneeseBlue text-white shadow-sm"
+                }`
+              }
             >
               Cart
               <CountPill count={cartCount} />
-            </Link>
+            </NavLink>
             {isLoggedIn ? (
               <button
                 type="button"
@@ -166,7 +188,7 @@ export default function StorefrontLayout({
       <footer className="border-t border-slate-200/70 bg-white/75">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-6 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
           <p>Copyright 2026 McNeese State University - Cowboy Bookstore</p>
-          <p>Responsive storefront UI for search, cart, wishlist, and checkout flows.</p>
+          <p>Responsive storefront for search, cart, wishlist, and checkout flows.</p>
         </div>
       </footer>
     </div>

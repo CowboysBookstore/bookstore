@@ -49,7 +49,7 @@ export default function CartPage() {
             <div className="mt-10 rounded-[28px] border border-dashed border-slate-300 px-6 py-12 text-center">
               <h2 className="text-2xl font-semibold text-slate-900">Cart is empty</h2>
               <p className="mt-3 text-sm text-slate-500">
-                Start on the search page and add products to preview the cart layout.
+                Start on the products page and add items to preview the cart layout.
               </p>
               <Link
                 to="/products"

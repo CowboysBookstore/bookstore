@@ -18,75 +18,97 @@ bookstore/
 ├── frontend/         Vite React + TypeScript + Tailwind (auth pages, components, tests)
 ├── .env.example      Template for secrets — copy to .env and fill in
 ├── .github/workflows CI pipelines (lint + test for backend and frontend)
-└── README.md
-```
 
----
+## Getting started — quick and reliable (few commands)
 
-## Getting started (from scratch)
+These instructions get a developer up and running quickly without surprises. They cover both Docker and local developer flows. The app uses SQLite for development so you don't need a separate DB service.
 
-> You need **Python 3.11+**, **Node 18+**, and **Git** installed.
+Prereqs
+- Docker Desktop (macOS / Windows) OR
+- Python 3.11+ and Node 18+ (if running locally)
 
-### 1. Clone the repo
+1) Clone the repo
 
-```bash
+```zsh
 git clone https://github.com/CowboysBookstore/bookstore.git
 cd bookstore
 ```
 
-### 2. Set up environment variables
+2) Copy the env template and edit (required)
 
-```bash
+```zsh
 cp .env.example .env
+# Open .env and set at least DJANGO_SECRET_KEY. Optionally set EMAIL_* and STRIPE_* for SMTP/Stripe tests.
 ```
 
-Open `.env` in a text editor and fill in the values. At minimum you need:
+Quick start — Docker (recommended)
 
-- `DJANGO_SECRET_KEY` — any random string (e.g. `python3 -c "import secrets; print(secrets.token_urlsafe(50))"`)
-- `JWT_SIGNING_KEY` — another random string
-- For email to actually send, fill in the `EMAIL_*` fields with a Gmail address and [App Password](https://myaccount.google.com/apppasswords)
+```zsh
+# build and start backend + frontend (first run may take a minute)
+docker compose up --build
+```
 
-### 3. Start the backend
+What this does
+- Runs migrations automatically for the backend.
+- Serves backend on http://localhost:8000 and frontend on http://localhost:5173 (Vite dev server + proxy).
 
-```bash
-python3 -m venv .venv
+Seed the product catalog (one-time)
+
+```zsh
+# in a separate terminal (or inside the backend container)
+docker compose exec backend python manage.py seed_products
+```
+
+Optional: create a superuser inside the backend container
+
+```zsh
+docker compose exec backend python manage.py createsuperuser
+```
+
+Shutting down
+
+```zsh
+docker compose down
+```
+
+Local dev (no Docker)
+
+Backend
+
+```zsh
+cd backend
+python3.11 -m venv .venv
 source .venv/bin/activate
-pip install -r backend/requirements.txt
-cd backend
+pip install -r requirements.txt
+cp ../.env.example ../.env
+# edit ../.env
 python manage.py migrate
-python manage.py runserver
+python manage.py seed_products
+python manage.py runserver 0.0.0.0:8000
 ```
 
-The API will be running at **http://localhost:8000**.
+Frontend (separate terminal)
 
-Leave this terminal open and open a **new terminal** for the frontend.
-
-### 4. Start the frontend
-
-```bash
+```zsh
 cd frontend
-npm install
-npm run dev
+npm ci
+npm run dev -- --host 0.0.0.0
 ```
 
-The app will be running at **http://localhost:5173**. Open it in your browser.
+Notes and troubleshooting
+- If the frontend doesn't show backend data, restart the frontend dev server so Vite picks up `vite.config.ts` (the dev proxy). Stop the server and run `npm run dev` again.
+- If you get CORS or 401 errors when calling `/api`, open DevTools Network and share the request/response — I'll help diagnose quickly.
+- Email: by default verification/reset codes print to the backend terminal. To enable real emails, set `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend` and fill SMTP fields in `.env`.
 
-### 5. Create an admin account (optional)
+Running tests
 
 ```bash
-cd backend
-source ../.venv/bin/activate
-python manage.py createsuperuser
+# Backend (from repo/backend, with venv active)
+cd backend && pytest
+
+# Frontend (from repo/frontend)
+cd frontend && npm run test
 ```
-
-Then visit **http://localhost:8000/admin/** to manage users and codes.
-
----
-
-## Running tests
-
-```bash
-# Backend (from repo root, with venv active)
 cd backend && pytest
 
 # Frontend (from repo root)
