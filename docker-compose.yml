@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    image: bookstore-backend-dev:latest
+    container_name: bookstore-backend-dev
+    env_file:
+      - ./.env
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./backend:/code/backend:rw
+    command: ["/code/backend/entrypoint-dev.sh"]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    image: bookstore-frontend-dev:latest
+    container_name: bookstore-frontend-dev
+    env_file:
+      - ./.env
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./frontend:/app:rw
+    command: ["/bin/sh", "-c", "npm ci && npm run dev -- --host 0.0.0.0"]
+
+# Usage: `docker compose up --build` (from repo root)

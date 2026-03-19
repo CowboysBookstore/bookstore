@@ -1,148 +1,178 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import ProductCard from "../components/ProductCard";
+import StorefrontLayout from "../components/StorefrontLayout";
+import { useStorefront } from "../storefront/StorefrontContext";
 
-function BookIcon() {
+function StatCard({
+  value,
+  label,
+  detail,
+}: {
+  value: string;
+  label: string;
+  detail: string;
+}) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-mcneeseBlue">
-      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-    </svg>
+    <div className="rounded-[28px] border border-white/20 bg-white/10 p-5 text-white shadow-lg shadow-blue-950/20 backdrop-blur">
+      <p className="text-3xl font-semibold">{value}</p>
+      <p className="mt-1 text-sm font-medium uppercase tracking-[0.16em] text-blue-100">
+        {label}
+      </p>
+      <p className="mt-3 text-sm text-blue-100/90">{detail}</p>
+    </div>
   );
 }
 
-function TextbookIcon() {
+function FeatureCard({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0033a0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-    </svg>
-  );
-}
-
-function HatIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0033a0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-      <path d="M2 17l10 5 10-5" />
-      <path d="M2 12l10 5 10-5" />
-    </svg>
-  );
-}
-
-function PickupIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0033a0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="16" height="13" x="6" y="4" rx="2" />
-      <path d="m2 17 4-4v7" />
-      <circle cx="18" cy="17" r="2" />
-      <circle cx="10" cy="17" r="2" />
-    </svg>
+    <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mcneeseBlue">
+        Feature
+      </p>
+      <h3 className="mt-3 text-xl font-semibold text-slate-900">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+    </div>
   );
 }
 
 export default function HomePage() {
-  const navigate = useNavigate();
-  const isLoggedIn = !!sessionStorage.getItem("access");
-
-  const handleSignOut = () => {
-    sessionStorage.removeItem("access");
-    sessionStorage.removeItem("refresh");
-    navigate("/login");
-  };
+  const { products, cartCount, wishlistCount, orders } = useStorefront();
+  const featuredProducts = products.slice(0, 4);
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <header className="border-b border-slate-100 px-6 py-4">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BookIcon />
-            <span className="text-lg font-semibold text-mcneeseBlue">
-              Cowboy Bookstore
-            </span>
-          </div>
-          {isLoggedIn ? (
-            <button
-              onClick={handleSignOut}
-              className="rounded-lg border border-slate-300 px-4 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-            >
-              Sign out
-            </button>
-          ) : (
-            <a
-              href="/login"
-              className="rounded-lg bg-mcneeseBlue px-4 py-1.5 text-sm font-medium text-white transition hover:bg-blue-800"
-            >
-              Sign in
-            </a>
-          )}
-        </div>
-      </header>
-
-      <main className="flex flex-1 flex-col">
-        <section className="bg-gradient-to-br from-mcneeseBlue to-blue-800 px-6 py-20 text-white">
-          <div className="mx-auto max-w-4xl text-center">
-            <h1 className="text-4xl font-bold sm:text-5xl">
-              Your campus bookstore, online
-            </h1>
-            <p className="mx-auto mt-4 max-w-xl text-lg text-blue-100">
-              Find textbooks, course materials, and McNeese gear — all in one
-              place. Built for Cowboys, by Cowboys.
+    <StorefrontLayout>
+      <section className="animate-rise overflow-hidden rounded-[36px] bg-slate-950 text-white shadow-2xl shadow-slate-300/60">
+        <div className="grid gap-10 px-8 py-10 lg:grid-cols-[1.2fr_0.8fr] lg:px-12 lg:py-14">
+          <div>
+            <p className="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-blue-100">
+              Cowboy Online Bookstore
             </p>
-            {!isLoggedIn && (
-              <div className="mt-8 flex justify-center gap-3">
-                <a
-                  href="/register"
-                  className="rounded-lg bg-mcneeseGold px-6 py-3 text-sm font-semibold text-slate-900 shadow transition hover:brightness-110"
-                >
-                  Create account
-                </a>
-                <a
-                  href="/login"
-                  className="rounded-lg border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-white/20"
-                >
-                  Sign in
-                </a>
-              </div>
-            )}
-            {isLoggedIn && (
-              <p className="mt-8 rounded-lg bg-white/10 px-4 py-3 text-sm text-blue-100">
-                You're signed in. More features coming soon — browse, cart, and checkout are on the way!
-              </p>
-            )}
-          </div>
-        </section>
+            <h1 className="mt-6 max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">
+              Stripe checkout ready.
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">
+              This site is built around the project brief: a secure, user-friendly
+              online bookstore where students can browse textbooks and office
+              supplies, manage wishlists, and move into checkout with pickup or
+              delivery options.
+            </p>
 
-        <section className="mx-auto grid max-w-5xl gap-6 px-6 py-16 sm:grid-cols-3">
-          {[
-            {
-              icon: <TextbookIcon />,
-              title: "Textbooks",
-              desc: "Search and buy required textbooks for every course.",
-            },
-            {
-              icon: <HatIcon />,
-              title: "McNeese Gear",
-              desc: "Rep the Cowboys with apparel, accessories, and more.",
-            },
-            {
-              icon: <PickupIcon />,
-              title: "Campus Pickup",
-              desc: "Order online and pick up at the bookstore — no shipping wait.",
-            },
-          ].map((f) => (
-            <div
-              key={f.title}
-              className="rounded-xl border border-slate-200 p-6 text-center shadow-sm"
-            >
-              <div className="flex justify-center">{f.icon}</div>
-              <h3 className="mt-3 font-semibold text-slate-900">{f.title}</h3>
-              <p className="mt-1 text-sm text-slate-500">{f.desc}</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                to="/products"
+                className="rounded-full bg-mcneeseGold px-6 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-110"
+              >
+                Explore catalog
+              </Link>
+              <Link
+                to="/checkout"
+                className="rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
+              >
+                View checkout page
+              </Link>
             </div>
-          ))}
-        </section>
-      </main>
 
-      <footer className="border-t border-slate-100 px-6 py-4 text-center text-xs text-slate-400">
-        © 2026 McNeese State University · Cowboy Bookstore
-      </footer>
-    </div>
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              <StatCard
+                  value={`${products.length}`}
+                  label="Products"
+                  detail="Textbooks, supplies, gear, and accessories from the catalog."
+                />
+              <StatCard
+                value={`${wishlistCount}`}
+                label="Wishlist items"
+                detail="Students can save products first, then move them into the cart later."
+              />
+              <StatCard
+                value={`${cartCount}`}
+                label="Cart quantity"
+                detail="The header stays in sync as users add products across the site."
+              />
+            </div>
+          </div>
+
+          <div className="animate-drift rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur">
+            <div className="rounded-[26px] bg-white p-5 text-slate-900 shadow-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                      Quick overview
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold">Student-first flow</h2>
+                </div>
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                    Demo flow
+                  </span>
+              </div>
+              <div className="mt-6 space-y-4">
+                {[
+                  "Search and filter products by category and keywords.",
+                  "Save items to a wishlist or add them straight to the cart.",
+                  "Review order totals and choose pickup or delivery at checkout.",
+                  "See recent orders and confirmation states on the orders page.",
+                ].map((step, index) => (
+                  <div key={step} className="flex gap-4 rounded-2xl bg-slate-50 p-4">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-mcneeseBlue text-sm font-semibold text-white">
+                      {index + 1}
+                    </div>
+                    <p className="text-sm leading-6 text-slate-600">{step}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 rounded-2xl bg-amber-50 p-4 text-sm text-amber-900">
+                {orders.length} recent order{orders.length === 1 ? "" : "s"} ready
+                to demo from the UI.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="animate-rise-delay mt-10 grid gap-5 md:grid-cols-3">
+        <FeatureCard
+          title="Explore catalog"
+          description="Browse the full catalog and open individual product pages for details and availability."
+        />
+        <FeatureCard
+          title="Student-first flow"
+          description="Search and filter products, save items to a wishlist, and add them to cart with minimal friction."
+        />
+        <FeatureCard
+          title="Checkout & orders"
+          description="Stripe checkout ready; choose pickup or delivery and review recent orders in the orders page."
+        />
+      </section>
+
+      <section className="mt-12">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mcneeseBlue">
+              Featured products
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold text-slate-900">
+              Inventory shown reflects product records from the catalog
+            </h2>
+          </div>
+          <Link
+            to="/products"
+            className="text-sm font-semibold text-mcneeseBlue transition hover:text-blue-800"
+          >
+            See all products
+          </Link>
+        </div>
+
+        <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
+          {featuredProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+    </StorefrontLayout>
   );
 }
