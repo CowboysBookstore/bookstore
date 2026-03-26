@@ -5,7 +5,8 @@ import { useStorefront } from "../storefront/StorefrontContext";
 
 export default function ProductDetailPage() {
   const { productId } = useParams();
-  const { products, addToCart, toggleWishlist, wishlist, getProduct } = useStorefront();
+  const { products, addToCart, toggleWishlist, wishlist, cart, getProduct } =
+    useStorefront();
 
   if (!productId) {
     return null;
@@ -35,7 +36,9 @@ export default function ProductDetailPage() {
   const relatedProducts = products
     .filter((item) => item.category === product.category && item.id !== product.id)
     .slice(0, 3);
-  const isWishlisted = wishlist.includes(product.id);
+  const isWishlisted = wishlist.some((item) => item.productId === product.id);
+  const cartQuantity =
+    cart.find((item) => item.productId === product.id)?.quantity ?? 0;
 
   return (
     <StorefrontLayout>
@@ -69,6 +72,11 @@ export default function ProductDetailPage() {
               <p className="mt-3 text-4xl font-semibold text-slate-900">
                 {formatCurrency(product.price)}
               </p>
+              {cartQuantity > 0 && (
+                <p className="mt-3 text-sm font-semibold text-emerald-700">
+                  {cartQuantity} already in cart
+                </p>
+              )}
             </div>
             <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
               <p>
@@ -116,7 +124,7 @@ export default function ProductDetailPage() {
               onClick={() => addToCart(product.id)}
               className="rounded-full bg-mcneeseBlue px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
             >
-              Add to cart
+              {cartQuantity > 0 ? "Add another to cart" : "Add to cart"}
             </button>
             <button
               type="button"
