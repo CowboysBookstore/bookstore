@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import App from "./App";
 
@@ -32,8 +32,28 @@ describe("App", () => {
       </MemoryRouter>
     );
     expect(
-      screen.getByRole("heading", { name: /Your cart/i })
+      screen.getByRole("heading", { name: /Review the bag before checkout/i })
     ).toBeInTheDocument();
+  });
+
+  it("places an order from checkout when the cart has items", () => {
+    window.sessionStorage.setItem(
+      "bookstore.cart",
+      JSON.stringify([{ productId: "eng-101-writing-handbook", quantity: 1 }])
+    );
+
+    render(
+      <MemoryRouter initialEntries={["/checkout"]}>
+        <App />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(
+      screen.getByLabelText(/I reviewed the checkout details/i)
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Place order/i }));
+
+    expect(screen.getByText(/Order placed successfully/i)).toBeInTheDocument();
   });
 
   it("redirects unknown routes to home", () => {

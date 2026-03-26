@@ -1,49 +1,112 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import StorefrontLayout from "../components/StorefrontLayout";
-import { formatCurrency } from "../storefront/data";
+import { formatCurrency, getPickupWindows, promoOffers } from "../storefront/data";
 import { useStorefront } from "../storefront/StorefrontContext";
-import type { FulfillmentMethod } from "../storefront/types";
+import type { FulfillmentMethod, PaymentMethod } from "../storefront/types";
+import { getPaymentMethodLabel } from "../storefront/utils";
+
+function StepCard({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-mcneeseBlue text-sm font-semibold text-white">
+        {number}
+      </div>
+      <h2 className="mt-4 text-lg font-semibold text-slate-900">{title}</h2>
+      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+    </div>
+  );
+}
+
+function formatCardNumber(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 16);
+  return digits.match(/.{1,4}/g)?.join(" ") ?? digits;
+}
+
+function formatExpiration(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+  if (digits.length <= 2) {
+    return digits;
+  }
+
+  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+}
+
+function formatPhoneNumber(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+  if (digits.length < 4) {
+    return digits;
+  }
+  if (digits.length < 7) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  }
+
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { cart, getProduct, placeOrder } = useStorefront();
+  const {
+    cartItems,
+    appliedPromoCode,
+    applyPromoCode,
+    clearPromoCode,
+    getPricingSummary,
+    placeOrder,
+  } = useStorefront();
+  const pickupWindows = getPickupWindows();
   const [fulfillment, setFulfillment] = useState<FulfillmentMethod>("pickup");
-  const [pickupSlot, setPickupSlot] = useState("March 20, 1:00 PM - 3:00 PM");
+  const [pickupSlot, setPickupSlot] = useState(pickupWindows[0] ?? "");
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [deliveryInstructions, setDeliveryInstructions] = useState("");
   const [fullName, setFullName] = useState("Cowboy Student");
   const [email, setEmail] = useState("student@mcneese.edu");
+  const [phone, setPhone] = useState("(337) 555-0144");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
   const [expiration, setExpiration] = useState("08/28");
   const [securityCode, setSecurityCode] = useState("123");
+  const [billingZip, setBillingZip] = useState("70609");
+  const [campusChargeId, setCampusChargeId] = useState("0002048");
+  const [promoInput, setPromoInput] = useState(appliedPromoCode ?? "");
+  const [promoFeedback, setPromoFeedback] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [error, setError] = useState("");
 
-  const checkoutItems = cart
-    .map((line) => {
-      const product = getProduct(line.productId);
-      if (!product) {
-        return null;
-      }
+  useEffect(() => {
+    setPromoInput(appliedPromoCode ?? "");
+  }, [appliedPromoCode]);
 
-      return {
-        ...line,
-        product,
-        lineTotal: Number((line.quantity * product.price).toFixed(2)),
-      };
-    })
-    .filter((item): item is NonNullable<typeof item> => Boolean(item));
+  useEffect(() => {
+    if (pickupWindows.length > 0 && !pickupWindows.includes(pickupSlot)) {
+      setPickupSlot(pickupWindows[0]);
+    }
+  }, [pickupSlot, pickupWindows]);
 
-  const subtotal = Number(
-    checkoutItems.reduce((sum, item) => sum + item.lineTotal, 0).toFixed(2)
-  );
-  const tax = Number((subtotal * 0.0875).toFixed(2));
-  const fulfillmentFee = fulfillment === "delivery" ? 6.95 : 0;
-  const total = Number((subtotal + tax + fulfillmentFee).toFixed(2));
+  const pricing = getPricingSummary(fulfillment);
+
+  const handleApplyPromo = () => {
+    const result = applyPromoCode(promoInput);
+    setPromoFeedback(result.message);
+  };
+
+  const handleClearPromo = () => {
+    clearPromoCode();
+    setPromoFeedback("Promo code removed from checkout.");
+  };
 
   const handlePlaceOrder = () => {
     setError("");
 
-    if (checkoutItems.length === 0) {
+    if (cartItems.length === 0) {
       setError("Add items to the cart before checking out.");
       return;
     }
@@ -56,18 +119,69 @@ export default function CheckoutPage() {
     if (
       fullName.trim() === "" ||
       email.trim() === "" ||
-      cardNumber.trim() === "" ||
-      expiration.trim() === "" ||
-      securityCode.trim() === ""
+      phone.replace(/\D/g, "").length !== 10
     ) {
-      setError("Complete the contact and payment fields before placing the order.");
+      setError("Complete the contact details before placing the order.");
       return;
     }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Enter a valid email address before placing the order.");
+      return;
+    }
+
+    if (paymentMethod === "card") {
+      const cardDigits = cardNumber.replace(/\D/g, "");
+      const expirationDigits = expiration.replace(/\D/g, "");
+      const securityDigits = securityCode.replace(/\D/g, "");
+      const month = Number(expirationDigits.slice(0, 2));
+
+      if (
+        cardDigits.length !== 16 ||
+        expirationDigits.length !== 4 ||
+        month < 1 ||
+        month > 12 ||
+        securityDigits.length < 3 ||
+        billingZip.replace(/\D/g, "").length !== 5
+      ) {
+        setError("Enter valid card details to continue.");
+        return;
+      }
+    }
+
+    if (
+      paymentMethod === "campus-charge" &&
+      campusChargeId.replace(/\D/g, "").length < 7
+    ) {
+      setError("Enter a valid campus charge account or student ID.");
+      return;
+    }
+
+    if (!agreedToTerms) {
+      setError("Review the order details and accept the checkout terms.");
+      return;
+    }
+
+    const paymentDigits =
+      paymentMethod === "card"
+        ? cardNumber.replace(/\D/g, "")
+        : campusChargeId.replace(/\D/g, "");
 
     const order = placeOrder({
       fulfillment,
       pickupSlot: fulfillment === "pickup" ? pickupSlot : undefined,
       deliveryAddress: fulfillment === "delivery" ? deliveryAddress : undefined,
+      deliveryInstructions:
+        fulfillment === "delivery" ? deliveryInstructions : undefined,
+      customer: {
+        fullName,
+        email,
+        phone,
+      },
+      paymentMethod,
+      paymentLabel: getPaymentMethodLabel(paymentMethod, paymentDigits),
+      promoCode: appliedPromoCode ?? undefined,
+      discount: pricing.discount,
     });
 
     if (!order) {
@@ -80,19 +194,42 @@ export default function CheckoutPage() {
 
   return (
     <StorefrontLayout>
-      <section className="animate-rise grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-6">
-          <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
+      <section className="animate-rise rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="grid gap-8 xl:grid-cols-[1fr_0.92fr] xl:items-end">
+          <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mcneeseBlue">
-              Checkout page
+              Checkout and payment
             </p>
-            <h1 className="mt-3 text-4xl font-semibold text-slate-900">Checkout</h1>
-            <p className="mt-4 text-base leading-7 text-slate-600">
-              This frontend-only checkout demonstrates the flow for pickup or delivery,
-              student contact information, and a Stripe-ready payment section.
+            <h1 className="mt-3 text-4xl font-semibold text-slate-900">Secure checkout</h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
+              The checkout flow now covers fulfillment choice, verified contact
+              info, promo-aware pricing, and multiple payment paths so the
+              bookstore demo feels like a complete purchasing system.
             </p>
           </div>
 
+          <div className="grid gap-4 md:grid-cols-3">
+            <StepCard
+              number="1"
+              title="Choose fulfillment"
+              description="Switch between campus pickup and delivery without losing pricing context."
+            />
+            <StepCard
+              number="2"
+              title="Confirm student details"
+              description="Collect the contact information needed for pickup updates or shipping notices."
+            />
+            <StepCard
+              number="3"
+              title="Pay and place"
+              description="Support card, campus charge, or wallet-style checkout UI in one place."
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-8 grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="space-y-6">
           {error && (
             <div className="rounded-[24px] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
               {error}
@@ -106,12 +243,16 @@ export default function CheckoutPage() {
                 {
                   id: "pickup" as const,
                   title: "Campus pickup",
-                  description: "Students collect orders from the bookstore during available windows.",
+                  description:
+                    "Pickup stays free and lets students choose the next available store window.",
                 },
                 {
                   id: "delivery" as const,
                   title: "Delivery",
-                  description: "Show delivery address fields and add a shipping fee to the order summary.",
+                  description:
+                    pricing.freeDeliveryRemaining === 0
+                      ? "This order already qualifies for free delivery."
+                      : "Delivery adds a fee until the order crosses the free-delivery threshold.",
                 },
               ].map((option) => (
                 <button
@@ -140,28 +281,42 @@ export default function CheckoutPage() {
                   onChange={(event) => setPickupSlot(event.target.value)}
                   className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                 >
-                  <option>March 20, 1:00 PM - 3:00 PM</option>
-                  <option>March 20, 3:30 PM - 5:00 PM</option>
-                  <option>March 21, 9:00 AM - 11:00 AM</option>
+                  {pickupWindows.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
                 </select>
               </label>
             ) : (
-              <label className="mt-6 block text-sm font-medium text-slate-700">
-                Delivery address
-                <textarea
-                  value={deliveryAddress}
-                  onChange={(event) => setDeliveryAddress(event.target.value)}
-                  rows={4}
-                  placeholder="Residence hall or off-campus address"
-                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                />
-              </label>
+              <div className="mt-6 grid gap-4">
+                <label className="block text-sm font-medium text-slate-700">
+                  Delivery address
+                  <textarea
+                    value={deliveryAddress}
+                    onChange={(event) => setDeliveryAddress(event.target.value)}
+                    rows={4}
+                    placeholder="Residence hall or off-campus address"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                  />
+                </label>
+                <label className="block text-sm font-medium text-slate-700">
+                  Delivery instructions
+                  <textarea
+                    value={deliveryInstructions}
+                    onChange={(event) => setDeliveryInstructions(event.target.value)}
+                    rows={3}
+                    placeholder="Entry code, desk drop, or residence hall details"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                  />
+                </label>
+              </div>
             )}
           </section>
 
           <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
             <h2 className="text-2xl font-semibold text-slate-900">Contact information</h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
               <label className="block text-sm font-medium text-slate-700">
                 Full name
                 <input
@@ -180,6 +335,17 @@ export default function CheckoutPage() {
                   className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                 />
               </label>
+              <label className="block text-sm font-medium text-slate-700">
+                Phone
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(event) =>
+                    setPhone(formatPhoneNumber(event.target.value))
+                  }
+                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                />
+              </label>
             </div>
           </section>
 
@@ -188,46 +354,147 @@ export default function CheckoutPage() {
               <div>
                 <h2 className="text-2xl font-semibold text-slate-900">Payment</h2>
                 <p className="mt-2 text-sm text-slate-500">
-                  UI placeholder for a Stripe card flow.
+                  A polished demo layer for card, campus charge, and wallet checkout.
                 </p>
               </div>
               <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
-                Stripe ready
+                Frontend milestone
               </span>
             </div>
 
-            <div className="mt-6 grid gap-4">
-              <label className="block text-sm font-medium text-slate-700">
-                Card number
-                <input
-                  type="text"
-                  value={cardNumber}
-                  onChange={(event) => setCardNumber(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                />
-              </label>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="block text-sm font-medium text-slate-700">
-                  Expiration
-                  <input
-                    type="text"
-                    value={expiration}
-                    onChange={(event) => setExpiration(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                  />
-                </label>
-                <label className="block text-sm font-medium text-slate-700">
-                  Security code
-                  <input
-                    type="text"
-                    value={securityCode}
-                    onChange={(event) => setSecurityCode(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                  />
-                </label>
-              </div>
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              {[
+                {
+                  id: "card" as const,
+                  title: "Card",
+                  description: "Standard debit or credit card checkout.",
+                },
+                {
+                  id: "campus-charge" as const,
+                  title: "Campus charge",
+                  description: "Bill the student bookstore or campus account.",
+                },
+                {
+                  id: "paypal" as const,
+                  title: "Wallet",
+                  description: "A PayPal-style express payment placeholder.",
+                },
+              ].map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setPaymentMethod(option.id)}
+                  className={`rounded-[24px] border p-5 text-left transition ${
+                    paymentMethod === option.id
+                      ? "border-mcneeseBlue bg-blue-50"
+                      : "border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <p className="text-lg font-semibold text-slate-900">{option.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {option.description}
+                  </p>
+                </button>
+              ))}
             </div>
+
+            {paymentMethod === "card" && (
+              <div className="mt-6 grid gap-4">
+                <label className="block text-sm font-medium text-slate-700">
+                  Card number
+                  <input
+                    type="text"
+                    value={cardNumber}
+                    onChange={(event) =>
+                      setCardNumber(formatCardNumber(event.target.value))
+                    }
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                  />
+                </label>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  <label className="block text-sm font-medium text-slate-700">
+                    Expiration
+                    <input
+                      type="text"
+                      value={expiration}
+                      onChange={(event) =>
+                        setExpiration(formatExpiration(event.target.value))
+                      }
+                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                    />
+                  </label>
+                  <label className="block text-sm font-medium text-slate-700">
+                    Security code
+                    <input
+                      type="text"
+                      value={securityCode}
+                      onChange={(event) =>
+                        setSecurityCode(event.target.value.replace(/\D/g, "").slice(0, 4))
+                      }
+                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                    />
+                  </label>
+                  <label className="block text-sm font-medium text-slate-700">
+                    Billing ZIP
+                    <input
+                      type="text"
+                      value={billingZip}
+                      onChange={(event) =>
+                        setBillingZip(event.target.value.replace(/\D/g, "").slice(0, 5))
+                      }
+                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                    />
+                  </label>
+                </div>
+
+                <div className="rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
+                  This is still a frontend-only build, but the layout is now ready for a
+                  real payment intent flow later.
+                </div>
+              </div>
+            )}
+
+            {paymentMethod === "campus-charge" && (
+              <div className="mt-6 grid gap-4">
+                <label className="block text-sm font-medium text-slate-700">
+                  Student or campus charge ID
+                  <input
+                    type="text"
+                    value={campusChargeId}
+                    onChange={(event) =>
+                      setCampusChargeId(event.target.value.replace(/\D/g, "").slice(0, 10))
+                    }
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                  />
+                </label>
+                <div className="rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
+                  Campus charge keeps the payment step simple for students whose
+                  bookstore spend is billed through the school account.
+                </div>
+              </div>
+            )}
+
+            {paymentMethod === "paypal" && (
+              <div className="mt-6 rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
+                Express wallet checkout uses the contact email on file and would
+                normally redirect out to a payment provider before returning to the
+                order confirmation screen.
+              </div>
+            )}
+
+            <label className="mt-6 flex items-start gap-3 rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
+              <input
+                type="checkbox"
+                checked={agreedToTerms}
+                onChange={(event) => setAgreedToTerms(event.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-slate-300 text-mcneeseBlue focus:ring-mcneeseBlue"
+              />
+              <span>
+                I reviewed the checkout details and understand this payment flow is a
+                demo-ready frontend for the bookstore milestone.
+              </span>
+            </label>
           </section>
         </div>
 
@@ -235,7 +502,7 @@ export default function CheckoutPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mcneeseBlue">
             Review order
           </p>
-          {checkoutItems.length === 0 ? (
+          {cartItems.length === 0 ? (
             <div className="mt-6 rounded-[24px] border border-dashed border-slate-300 px-5 py-8 text-center">
               <p className="text-lg font-semibold text-slate-900">Nothing to review yet</p>
               <p className="mt-2 text-sm text-slate-500">
@@ -251,7 +518,7 @@ export default function CheckoutPage() {
           ) : (
             <>
               <div className="mt-6 space-y-4">
-                {checkoutItems.map((item) => (
+                {cartItems.map((item) => (
                   <div
                     key={item.product.id}
                     className="flex items-start justify-between gap-4 rounded-[22px] bg-slate-50 p-4"
@@ -273,23 +540,95 @@ export default function CheckoutPage() {
                 <div className="flex items-center justify-between">
                   <span>Subtotal</span>
                   <span className="font-semibold text-slate-900">
-                    {formatCurrency(subtotal)}
+                    {formatCurrency(pricing.subtotal)}
                   </span>
                 </div>
+                {pricing.discount > 0 && (
+                  <div className="flex items-center justify-between text-emerald-700">
+                    <span>Promo savings</span>
+                    <span className="font-semibold">
+                      -{formatCurrency(pricing.discount)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span>Estimated tax</span>
-                  <span className="font-semibold text-slate-900">{formatCurrency(tax)}</span>
+                  <span className="font-semibold text-slate-900">
+                    {formatCurrency(pricing.tax)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>{fulfillment === "pickup" ? "Pickup" : "Delivery fee"}</span>
                   <span className="font-semibold text-slate-900">
-                    {formatCurrency(fulfillmentFee)}
+                    {formatCurrency(pricing.fulfillmentFee)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between border-t border-slate-200 pt-4 text-base text-slate-900">
                   <span className="font-medium">Total</span>
-                  <span className="text-xl font-semibold">{formatCurrency(total)}</span>
+                  <span className="text-xl font-semibold">
+                    {formatCurrency(pricing.total)}
+                  </span>
                 </div>
+              </div>
+
+              <div className="mt-8 rounded-[24px] bg-slate-50 p-5">
+                <label className="block text-sm font-medium text-slate-700">
+                  Promo code
+                  <div className="mt-3 flex gap-3">
+                    <input
+                      type="text"
+                      value={promoInput}
+                      onChange={(event) =>
+                        setPromoInput(event.target.value.toUpperCase())
+                      }
+                      placeholder="Enter code"
+                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm uppercase transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyPromo}
+                      className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </label>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {promoOffers.map((offer) => (
+                    <button
+                      key={offer.code}
+                      type="button"
+                      onClick={() => setPromoInput(offer.code)}
+                      className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition hover:bg-white"
+                    >
+                      {offer.code}
+                    </button>
+                  ))}
+                </div>
+                {(promoFeedback || appliedPromoCode) && (
+                  <div className="mt-4 rounded-2xl bg-white p-4 text-sm leading-6 text-slate-600">
+                    {promoFeedback && <p>{promoFeedback}</p>}
+                    {appliedPromoCode && (
+                      <button
+                        type="button"
+                        onClick={handleClearPromo}
+                        className="mt-3 font-semibold text-mcneeseBlue transition hover:text-blue-800"
+                      >
+                        Remove {appliedPromoCode}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 rounded-[24px] bg-blue-50 p-5 text-sm leading-6 text-blue-900">
+                {fulfillment === "pickup"
+                  ? `Selected pickup window: ${pickupSlot}`
+                  : pricing.freeDeliveryRemaining === 0
+                    ? "Delivery is free on this order."
+                    : `${formatCurrency(
+                        pricing.freeDeliveryRemaining
+                      )} away from free delivery.`}
               </div>
 
               <button
@@ -297,8 +636,14 @@ export default function CheckoutPage() {
                 onClick={handlePlaceOrder}
                 className="mt-8 w-full rounded-full bg-mcneeseBlue px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
               >
-                Place order
+                Place order - {formatCurrency(pricing.total)}
               </button>
+              <Link
+                to="/cart"
+                className="mt-3 block rounded-full border border-slate-200 px-5 py-3 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Back to cart
+              </Link>
             </>
           )}
         </aside>

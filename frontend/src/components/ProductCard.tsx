@@ -4,8 +4,10 @@ import { useStorefront } from "../storefront/StorefrontContext";
 import type { Product } from "../storefront/types";
 
 export default function ProductCard({ product }: { product: Product }) {
-  const { addToCart, toggleWishlist, wishlist } = useStorefront();
-  const isWishlisted = wishlist.includes(product.id);
+  const { addToCart, toggleWishlist, wishlist, cart } = useStorefront();
+  const isWishlisted = wishlist.some((item) => item.productId === product.id);
+  const cartQuantity =
+    cart.find((item) => item.productId === product.id)?.quantity ?? 0;
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
@@ -14,9 +16,16 @@ export default function ProductCard({ product }: { product: Product }) {
         style={{ background: product.coverGradient }}
       >
         <div className="flex items-start justify-between gap-3">
-          <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/95">
-            {product.category}
-          </span>
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/95">
+              {product.category}
+            </span>
+            {cartQuantity > 0 && (
+              <span className="rounded-full bg-black/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+                In cart: {cartQuantity}
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={() => toggleWishlist(product.id)}
@@ -91,7 +100,7 @@ export default function ProductCard({ product }: { product: Product }) {
             onClick={() => addToCart(product.id)}
             className="flex-1 rounded-full bg-mcneeseBlue px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-800"
           >
-            Add to cart
+            {cartQuantity > 0 ? "Add another" : "Add to cart"}
           </button>
         </div>
       </div>
