@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { describe, expect, it } from "vitest";
 import App from "./App";
 
 describe("App", () => {
@@ -10,7 +11,7 @@ describe("App", () => {
       </MemoryRouter>
     );
     expect(
-      screen.getByText(/Search, save, cart, and checkout from one McNeese storefront/i)
+      screen.getByRole("heading", { name: /Stripe checkout ready/i })
     ).toBeInTheDocument();
   });
 
@@ -63,7 +64,7 @@ describe("App", () => {
       </MemoryRouter>
     );
     expect(
-      screen.getByText(/Search, save, cart, and checkout from one McNeese storefront/i)
+      screen.getByRole("heading", { name: /Stripe checkout ready/i })
     ).toBeInTheDocument();
   });
 });
