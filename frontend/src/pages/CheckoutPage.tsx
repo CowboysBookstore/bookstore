@@ -71,10 +71,10 @@ export default function CheckoutPage() {
   const [email, setEmail] = useState("student@mcneese.edu");
   const [phone, setPhone] = useState("(337) 555-0144");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
-  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
-  const [expiration, setExpiration] = useState("08/28");
-  const [securityCode, setSecurityCode] = useState("123");
-  const [billingZip, setBillingZip] = useState("70609");
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiration, setExpiration] = useState("");
+  const [securityCode, setSecurityCode] = useState("");
+  const [billingZip, setBillingZip] = useState("");
   const [campusChargeId, setCampusChargeId] = useState("0002048");
   const [promoInput, setPromoInput] = useState(appliedPromoCode ?? "");
   const [promoFeedback, setPromoFeedback] = useState("");
@@ -132,19 +132,56 @@ export default function CheckoutPage() {
 
     if (paymentMethod === "card") {
       const cardDigits = cardNumber.replace(/\D/g, "");
-      const expirationDigits = expiration.replace(/\D/g, "");
-      const securityDigits = securityCode.replace(/\D/g, "");
-      const month = Number(expirationDigits.slice(0, 2));
-
+      if (!/^[0-9]{16}$/.test(cardDigits)) {
+        setError("Card number must be 16 digits.");
+        return;
+      }
+      function luhnCheck(num: string) {
+        let sum = 0;
+        let shouldDouble = false;
+        for (let i = num.length - 1; i >= 0; i--) {
+          let digit = parseInt(num.charAt(i));
+          if (shouldDouble) {
+            digit *= 2;
+            if (digit > 9) digit -= 9;
+          }
+          sum += digit;
+          shouldDouble = !shouldDouble;
+        }
+        return sum % 10 === 0;
+      }
+      if (!luhnCheck(cardDigits)) {
+        setError("Invalid card number.");
+        return;
+      }
+      // Expiry validation
+      if (!expiration) {
+        setError("Expiration date is required.");
+        return;
+      }
+      const [expYear, expMonth] = expiration.split("-").map(Number);
+      const now = new Date();
       if (
-        cardDigits.length !== 16 ||
-        expirationDigits.length !== 4 ||
-        month < 1 ||
-        month > 12 ||
-        securityDigits.length < 3 ||
-        billingZip.replace(/\D/g, "").length !== 5
+        expYear < now.getFullYear() ||
+        (expYear === now.getFullYear() && expMonth < now.getMonth() + 1)
       ) {
-        setError("Enter valid card details to continue.");
+        setError("Card expiration date cannot be in the past.");
+        return;
+      }
+      if (expMonth < 1 || expMonth > 12) {
+        setError("Expiration month must be between 01 and 12.");
+        return;
+      }
+      // Security code validation (3 digits)
+      const securityDigits = securityCode.replace(/\D/g, "");
+      if (!/^[0-9]{3}$/.test(securityDigits)) {
+        setError("Security code must be 3 digits.");
+        return;
+      }
+      // Billing ZIP validation (5 digits)
+      const zipDigits = billingZip.replace(/\D/g, "");
+      if (!/^[0-9]{5}$/.test(zipDigits)) {
+        setError("Billing ZIP must be 5 digits.");
         return;
       }
     }
@@ -357,9 +394,6 @@ export default function CheckoutPage() {
                   A polished demo layer for card, campus charge, and wallet checkout.
                 </p>
               </div>
-              <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
-                Frontend milestone
-              </span>
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -403,11 +437,20 @@ export default function CheckoutPage() {
                 <label className="block text-sm font-medium text-slate-700">
                   Card number
                   <input
-                    type="text"
+                    type="tel"
+                    inputMode="numeric"
+                    autoComplete="cc-number"
+                    name="cc-number"
+                    maxLength={19}
                     value={cardNumber}
-                    onChange={(event) =>
-                      setCardNumber(formatCardNumber(event.target.value))
-                    }
+                    onChange={(event) => {
+                      let val = event.target.value;
+                      val = val.replace(/[^0-9 ]/g, "");
+                      val = val.replace(/\s+/g, "");
+                      val = val.slice(0, 16);
+                      val = val.replace(/(.{4})/g, "$1 ").trim();
+                      setCardNumber(val);
+                    }}
                     className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                   />
                 </label>
@@ -416,11 +459,17 @@ export default function CheckoutPage() {
                   <label className="block text-sm font-medium text-slate-700">
                     Expiration
                     <input
-                      type="text"
+                      type="month"
+                      min={(() => {
+                        const now = new Date();
+                        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+                      })()}
+                      name="cc-exp"
+                      autoComplete="cc-exp"
                       value={expiration}
-                      onChange={(event) =>
-                        setExpiration(formatExpiration(event.target.value))
-                      }
+                      onChange={(event) => {
+                        setExpiration(event.target.value);
+                      }}
                       className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                     />
                   </label>
@@ -428,10 +477,15 @@ export default function CheckoutPage() {
                     Security code
                     <input
                       type="text"
+                      inputMode="numeric"
+                      name="cc-csc"
+                      autoComplete="cc-csc"
+                      maxLength={3}
                       value={securityCode}
-                      onChange={(event) =>
-                        setSecurityCode(event.target.value.replace(/\D/g, "").slice(0, 4))
-                      }
+                      onChange={(event) => {
+                        let val = event.target.value.replace(/[^0-9]/g, "");
+                        setSecurityCode(val.slice(0, 3));
+                      }}
                       className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                     />
                   </label>
@@ -439,18 +493,22 @@ export default function CheckoutPage() {
                     Billing ZIP
                     <input
                       type="text"
+                      inputMode="numeric"
+                      name="postal-code"
+                      autoComplete="postal-code"
+                      maxLength={5}
                       value={billingZip}
-                      onChange={(event) =>
-                        setBillingZip(event.target.value.replace(/\D/g, "").slice(0, 5))
-                      }
+                      onChange={(event) => {
+                        let val = event.target.value.replace(/[^0-9]/g, "");
+                        setBillingZip(val.slice(0, 5));
+                      }}
                       className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                     />
                   </label>
                 </div>
 
                 <div className="rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
-                  This is still a frontend-only build, but the layout is now ready for a
-                  real payment intent flow later.
+                  This is still a frontend-only build, but the layout is now ready for a real payment intent flow later.
                 </div>
               </div>
             )}
@@ -491,8 +549,7 @@ export default function CheckoutPage() {
                 className="mt-1 h-4 w-4 rounded border-slate-300 text-mcneeseBlue focus:ring-mcneeseBlue"
               />
               <span>
-                I reviewed the checkout details and understand this payment flow is a
-                demo-ready frontend for the bookstore milestone.
+                I reviewed the checkout details and understand this payment flow is a demo-ready frontend for the bookstore.
               </span>
             </label>
           </section>
