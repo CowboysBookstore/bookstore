@@ -1,189 +1,59 @@
 from __future__ import annotations
 
-from django.core.management.base import BaseCommand
+import json
+from pathlib import Path
+
+from django.core.management.base import BaseCommand, CommandError
+
 from products.models import Product
 
 
-MOCK_PRODUCTS = [
-    {
-        "slug": "eng-101-writing-handbook",
-        "title": "ENG 101 Writing Handbook",
-        "category": "Textbooks",
-        "short_description": "Required handbook for composition students.",
-        "description": "A course-ready writing handbook with grammar refreshers, essay templates, and annotated examples for first-year composition.",
-        "badge": "Required",
-        "course": "ENG 101",
-        "format": "Paperback",
-        "price": "64.99",
-        "inventory": 32,
-        "sku": "ENG-101",
-        "image_url": "",
-        "rating": 4.8,
-        "pickup_note": "Ready for same-day campus pickup",
-        "delivery_note": "Delivers in 2 business days",
-        "highlights": ["Course-aligned chapters", "Citation quick guides", "Practice prompts"],
-        "cover_gradient": "linear-gradient(135deg, #0f172a 0%, #1d4ed8 55%, #60a5fa 100%)",
-    },
-    {
-        "slug": "math-231-calculus-pack",
-        "title": "MATH 231 Calculus Problem Pack",
-        "category": "Textbooks",
-        "short_description": "Workbook bundle for Calculus I study sessions.",
-        "description": "A bundled calculus workbook with worked examples, review quizzes, and reference sheets built for STEM majors.",
-        "badge": "Best Seller",
-        "course": "MATH 231",
-        "format": "Workbook bundle",
-        "price": "88.50",
-        "inventory": 18,
-        "sku": "MATH-231",
-        "image_url": "",
-        "rating": 4.6,
-        "pickup_note": "Pickup available after 10 AM",
-        "delivery_note": "Ships with tracking this week",
-        "highlights": ["Solved practice sets", "Formula cards included", "Exam prep checkpoints"],
-        "cover_gradient": "linear-gradient(135deg, #1e3a8a 0%, #2563eb 45%, #facc15 100%)",
-    },
-    {
-        "slug": "bio-214-lab-kit",
-        "title": "BIO 214 Lab Kit",
-        "category": "Office Supplies",
-        "short_description": "Grab-and-go kit for biology lab sections.",
-        "description": "A lab-ready essentials kit with graph paper, fine-tip markers, gloves, and notebook inserts for biology sections.",
-        "badge": "Lab Ready",
-        "course": "BIO 214",
-        "format": "Kit",
-        "price": "39.25",
-        "inventory": 41,
-        "sku": "BIO-214",
-        "image_url": "",
-        "rating": 4.7,
-        "pickup_note": "Available for front-counter pickup",
-        "delivery_note": "Delivery estimate: 3 business days",
-        "highlights": ["Packed for lab day", "Fits standard lockers", "Color-coded inserts"],
-        "cover_gradient": "linear-gradient(135deg, #0f766e 0%, #14b8a6 60%, #99f6e4 100%)",
-    },
-    {
-        "slug": "cowboy-study-planner",
-        "title": "Cowboy Semester Planner",
-        "category": "Office Supplies",
-        "short_description": "Semester planner with class and assignment views.",
-        "description": "A McNeese-branded planner with class schedule blocks, assignment trackers, and weekly goals for busy semesters.",
-        "badge": "Student Pick",
-        "format": "Spiral planner",
-        "price": "18.75",
-        "inventory": 67,
-        "sku": "PLANNER-1",
-        "image_url": "",
-        "rating": 4.9,
-        "pickup_note": "Pickup ready in 1 hour",
-        "delivery_note": "Eligible for low-cost delivery",
-        "highlights": ["Monthly overview pages", "Exam countdown tracker", "Durable gold tabs"],
-        "cover_gradient": "linear-gradient(135deg, #7c2d12 0%, #f59e0b 50%, #fef3c7 100%)",
-    },
-    {
-        "slug": "graphing-calculator-pro",
-        "title": "Graphing Calculator Pro",
-        "category": "Tech Accessories",
-        "short_description": "Graphing calculator approved for most math courses.",
-        "description": "A programmable calculator with graphing support, reusable memory storage, and exam-mode controls for classroom use.",
-        "badge": "Top Rated",
-        "course": "MATH / PHYS",
-        "format": "Device",
-        "price": "129.00",
-        "inventory": 12,
-        "sku": "CALC-PRO",
-        "image_url": "",
-        "rating": 4.9,
-        "pickup_note": "Reserve today and pick up tomorrow",
-        "delivery_note": "Priority delivery available",
-        "highlights": ["Color graph display", "Rechargeable battery", "Exam-safe settings"],
-        "cover_gradient": "linear-gradient(135deg, #111827 0%, #374151 55%, #9ca3af 100%)",
-    },
-    {
-        "slug": "laptop-sleeve-14",
-        "title": "14-inch Laptop Sleeve",
-        "category": "Tech Accessories",
-        "short_description": "Protective sleeve for everyday campus carry.",
-        "description": "A padded sleeve for daily campus travel with weather-resistant fabric, accessory pocket, and easy-carry handle.",
-        "badge": "New Arrival",
-        "format": "Accessory",
-        "price": "27.99",
-        "inventory": 29,
-        "sku": "SLEEVE-14",
-        "image_url": "",
-        "rating": 4.5,
-        "pickup_note": "Pickup available this afternoon",
-        "delivery_note": "Delivery estimate: 2-4 business days",
-        "highlights": ["Water-resistant shell", "Accessory pouch", "Lightweight fit"],
-        "cover_gradient": "linear-gradient(135deg, #1f2937 0%, #3b82f6 50%, #dbeafe 100%)",
-    },
-    {
-        "slug": "cowboy-hoodie-navy",
-        "title": "Cowboy Hoodie - Navy",
-        "category": "McNeese Gear",
-        "short_description": "Classic navy hoodie with bookstore branding.",
-        "description": "A soft heavyweight hoodie with embroidered Cowboy Bookstore graphics and a relaxed campus fit.",
-        "badge": "Campus Favorite",
-        "format": "Apparel",
-        "price": "54.00",
-        "inventory": 22,
-        "sku": "HOODIE-NVY",
-        "image_url": "",
-        "rating": 4.8,
-        "pickup_note": "Pickup stocked in most sizes",
-        "delivery_note": "Delivery estimate: 4 business days",
-        "highlights": ["Midweight fleece", "Embroidered crest", "Unisex fit"],
-        "cover_gradient": "linear-gradient(135deg, #172554 0%, #1d4ed8 55%, #bfdbfe 100%)",
-    },
-    {
-        "slug": "mcneese-tumbler-gold",
-        "title": "McNeese Tumbler - Gold",
-        "category": "McNeese Gear",
-        "short_description": "Insulated tumbler with gold bookstore finish.",
-        "description": "A double-wall insulated tumbler built for long classes, library sessions, and early-morning walks across campus.",
-        "badge": "Giftable",
-        "format": "Drinkware",
-        "price": "24.50",
-        "inventory": 35,
-        "sku": "TUMBLER-GOLD",
-        "image_url": "",
-        "rating": 4.7,
-        "pickup_note": "Pickup available near register one",
-        "delivery_note": "Ships in recyclable packaging",
-        "highlights": ["Hot or cold insulation", "Spill-resistant lid", "Laser-etched logo"],
-        "cover_gradient": "linear-gradient(135deg, #713f12 0%, #eab308 50%, #fef9c3 100%)",
-    },
-]
+CATALOG_PATH = (
+    Path(__file__).resolve().parents[4]
+    / "frontend"
+    / "src"
+    / "storefront"
+    / "catalog.json"
+)
 
 
 class Command(BaseCommand):
-    help = "Seed example products into the database"
+    help = "Seed the shared bookstore catalog into the database"
 
     def handle(self, *args, **options):
+        if not CATALOG_PATH.exists():
+            raise CommandError(f"Catalog file not found: {CATALOG_PATH}")
+
+        catalog_products = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
         created = 0
-        for p in MOCK_PRODUCTS:
+
+        for product in catalog_products:
             defaults = {
-                "title": p.get("title"),
-                "category": p.get("category", "Textbooks"),
-                "short_description": p.get("short_description", ""),
-                "description": p.get("description", ""),
-                "badge": p.get("badge", ""),
-                "course": p.get("course", ""),
-                "format": p.get("format", ""),
-                "price": p.get("price"),
-                "inventory": p.get("inventory", 0),
-                "sku": p.get("sku", ""),
-                "image_url": p.get("image_url", ""),
-                "rating": p.get("rating", 4.5),
-                "pickup_note": p.get("pickup_note", ""),
-                "delivery_note": p.get("delivery_note", ""),
-                "highlights": p.get("highlights", []),
-                "cover_gradient": p.get("cover_gradient", ""),
+                "title": product.get("title"),
+                "category": product.get("category", "Textbooks"),
+                "short_description": product.get("short_description", ""),
+                "description": product.get("description", ""),
+                "badge": product.get("badge", ""),
+                "course": product.get("course", ""),
+                "format": product.get("format", ""),
+                "price": product.get("price"),
+                "inventory": product.get("inventory", 0),
+                "sku": product.get("sku", ""),
+                "image_url": product.get("image_url", ""),
+                "rating": product.get("rating", 4.5),
+                "pickup_note": product.get("pickup_note", ""),
+                "delivery_note": product.get("delivery_note", ""),
+                "highlights": product.get("highlights", []),
+                "cover_gradient": product.get("cover_gradient", ""),
             }
-            obj, was_created = Product.objects.update_or_create(
-                slug=p.get("slug"), defaults=defaults
+            _, was_created = Product.objects.update_or_create(
+                slug=product.get("slug"), defaults=defaults
             )
             if was_created:
                 created += 1
 
-        self.stdout.write(self.style.SUCCESS(f"Seeded {created} products"))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Seeded {len(catalog_products)} catalog products ({created} newly created)"
+            )
+        )

@@ -48,7 +48,7 @@ export default function CartPage() {
   const pickupSummary = getPricingSummary("pickup");
   const deliverySummary = getPricingSummary("delivery");
   const lowStockCount = cartItems.filter(
-    (item) => item.product.stock - item.quantity <= 3
+    (item) => item.product.stock - item.quantity <= 3,
   ).length;
 
   const handleApplyPromo = () => {
@@ -73,9 +73,9 @@ export default function CartPage() {
               Review the bag before checkout
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-              This milestone turns the cart into a proper management screen with
-              quantity controls, save-for-later actions, promo support, delivery
-              planning, and a cleaner handoff into checkout.
+              The cart acts as a full management screen with quantity controls,
+              save-for-later actions, promo support, delivery planning, and a
+              cleaner handoff into checkout.
             </p>
           </div>
 
@@ -100,7 +100,7 @@ export default function CartPage() {
               detail={
                 deliverySummary.freeDeliveryRemaining === 0
                   ? "This cart now qualifies for free delivery at checkout."
-                : "More spend needed to unlock free delivery on shipped orders."
+                  : "More spend needed to unlock free delivery on shipped orders."
               }
             />
           </div>
@@ -109,9 +109,11 @@ export default function CartPage() {
 
       {cartItems.length === 0 ? (
         <section className="mt-8 rounded-[32px] border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-900">Cart is empty</h2>
+          <h2 className="text-2xl font-semibold text-slate-900">
+            Cart is empty
+          </h2>
           <p className="mt-3 text-sm text-slate-500">
-            Start on the search page and add products to preview the cart flow.
+            Start on the products page and add items to begin your order.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
@@ -135,7 +137,7 @@ export default function CartPage() {
           <div className="space-y-4">
             {cartItems.map((item) => {
               const alreadySaved = wishlist.some(
-                (entry) => entry.productId === item.product.id
+                (entry) => entry.productId === item.product.id,
               );
               const remainingStock = item.product.stock - item.quantity;
 
@@ -155,7 +157,9 @@ export default function CartPage() {
                       <h2 className="mt-4 text-2xl font-semibold leading-tight">
                         {item.product.title}
                       </h2>
-                      <p className="mt-5 text-sm text-white/80">{item.product.badge}</p>
+                      <p className="mt-5 text-sm text-white/80">
+                        {item.product.badge}
+                      </p>
                     </div>
 
                     <div>
@@ -179,11 +183,15 @@ export default function CartPage() {
 
                       <div className="mt-5 grid gap-3 md:grid-cols-2">
                         <div className="rounded-[20px] bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-                          <p className="font-semibold text-slate-900">Delivery note</p>
+                          <p className="font-semibold text-slate-900">
+                            Delivery note
+                          </p>
                           <p className="mt-1">{item.product.deliveryNote}</p>
                         </div>
                         <div className="rounded-[20px] bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-                          <p className="font-semibold text-slate-900">Stock watch</p>
+                          <p className="font-semibold text-slate-900">
+                            Stock watch
+                          </p>
                           <p className="mt-1">
                             {remainingStock <= 0
                               ? "You are at the current stock limit for this item."
@@ -205,7 +213,10 @@ export default function CartPage() {
                         <button
                           type="button"
                           onClick={() =>
-                            updateCartQuantity(item.product.id, item.quantity - 1)
+                            updateCartQuantity(
+                              item.product.id,
+                              item.quantity - 1,
+                            )
                           }
                           className="h-9 w-9 rounded-full bg-white text-lg font-semibold text-slate-700 shadow-sm"
                         >
@@ -217,7 +228,10 @@ export default function CartPage() {
                         <button
                           type="button"
                           onClick={() =>
-                            updateCartQuantity(item.product.id, item.quantity + 1)
+                            updateCartQuantity(
+                              item.product.id,
+                              item.quantity + 1,
+                            )
                           }
                           className={`h-9 w-9 rounded-full text-lg font-semibold shadow-sm ${
                             item.quantity >= item.product.stock
@@ -304,7 +318,9 @@ export default function CartPage() {
                   <input
                     type="text"
                     value={promoInput}
-                    onChange={(event) => setPromoInput(event.target.value.toUpperCase())}
+                    onChange={(event) =>
+                      setPromoInput(event.target.value.toUpperCase())
+                    }
                     placeholder="Enter code"
                     className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm uppercase transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                   />
@@ -351,15 +367,15 @@ export default function CartPage() {
               {deliverySummary.freeDeliveryRemaining === 0
                 ? "Delivery is free on this order right now."
                 : `${formatCurrency(
-                    deliverySummary.freeDeliveryRemaining
+                    deliverySummary.freeDeliveryRemaining,
                   )} away from free delivery.`}
             </div>
 
             {lowStockCount > 0 && (
               <div className="mt-4 rounded-[24px] bg-amber-50 p-5 text-sm leading-6 text-amber-900">
                 {lowStockCount} cart item{lowStockCount === 1 ? "" : "s"}{" "}
-                {lowStockCount === 1 ? "is" : "are"} getting close to the available
-                stock limit.
+                {lowStockCount === 1 ? "is" : "are"} getting close to the
+                available stock limit.
               </div>
             )}
 

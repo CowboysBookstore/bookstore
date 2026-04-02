@@ -78,7 +78,7 @@ export default function StorefrontLayout({
               Campus pickup
             </span>
             <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-900">
-              Stripe checkout ready
+              Secure checkout
             </span>
           </div>
         </div>

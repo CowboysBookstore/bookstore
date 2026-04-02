@@ -8,10 +8,12 @@ describe("App", () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(
-      screen.getByRole("heading", { name: /Stripe checkout ready/i })
+      screen.getByRole("heading", {
+        name: /Course materials, ready to order/i,
+      }),
     ).toBeInTheDocument();
   });
 
@@ -19,10 +21,10 @@ describe("App", () => {
     render(
       <MemoryRouter initialEntries={["/products"]}>
         <App />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(
-      screen.getByRole("heading", { name: /Browse products/i })
+      screen.getByRole("heading", { name: /Browse products/i }),
     ).toBeInTheDocument();
   });
 
@@ -30,41 +32,64 @@ describe("App", () => {
     render(
       <MemoryRouter initialEntries={["/cart"]}>
         <App />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(
-      screen.getByRole("heading", { name: /Review the bag before checkout/i })
+      screen.getByRole("heading", { name: /Review the bag before checkout/i }),
     ).toBeInTheDocument();
   });
 
   it("places an order from checkout when the cart has items", () => {
     window.sessionStorage.setItem(
       "bookstore.cart",
-      JSON.stringify([{ productId: "eng-101-writing-handbook", quantity: 1 }])
+      JSON.stringify([{ productId: "eng-101-writing-handbook", quantity: 1 }]),
     );
 
     render(
       <MemoryRouter initialEntries={["/checkout"]}>
         <App />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    fireEvent.click(
-      screen.getByLabelText(/I reviewed the checkout details/i)
-    );
+    fireEvent.click(screen.getByLabelText(/I reviewed the checkout details/i));
     fireEvent.click(screen.getByRole("button", { name: /Place order/i }));
 
     expect(screen.getByText(/Order placed successfully/i)).toBeInTheDocument();
+  });
+
+  it("requires a delivery address before placing a delivery order", () => {
+    window.sessionStorage.setItem(
+      "bookstore.cart",
+      JSON.stringify([{ productId: "eng-101-writing-handbook", quantity: 1 }]),
+    );
+
+    render(
+      <MemoryRouter initialEntries={["/checkout"]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /^Delivery\b/i }));
+    fireEvent.click(
+      screen.getByLabelText(/I reviewed the checkout details and authorize/i),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Place order/i }));
+
+    expect(
+      screen.getByText(/Enter a delivery address to continue/i),
+    ).toBeInTheDocument();
   });
 
   it("redirects unknown routes to home", () => {
     render(
       <MemoryRouter initialEntries={["/some-random-page"]}>
         <App />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(
-      screen.getByRole("heading", { name: /Stripe checkout ready/i })
+      screen.getByRole("heading", {
+        name: /Course materials, ready to order/i,
+      }),
     ).toBeInTheDocument();
   });
 });

@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import StorefrontLayout from "../components/StorefrontLayout";
-import { formatCurrency, getPickupWindows, promoOffers } from "../storefront/data";
+import {
+  formatCurrency,
+  getPickupWindows,
+  promoOffers,
+} from "../storefront/data";
 import { useStorefront } from "../storefront/StorefrontContext";
 import type { FulfillmentMethod, PaymentMethod } from "../storefront/types";
 import { getPaymentMethodLabel } from "../storefront/utils";
@@ -200,11 +204,13 @@ export default function CheckoutPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mcneeseBlue">
               Checkout and payment
             </p>
-            <h1 className="mt-3 text-4xl font-semibold text-slate-900">Secure checkout</h1>
+            <h1 className="mt-3 text-4xl font-semibold text-slate-900">
+              Secure checkout
+            </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-              The checkout flow now covers fulfillment choice, verified contact
-              info, promo-aware pricing, and multiple payment paths so the
-              bookstore demo feels like a complete purchasing system.
+              The checkout flow covers fulfillment choice, verified contact
+              info, promo-aware pricing, and multiple payment paths for a
+              complete purchasing experience.
             </p>
           </div>
 
@@ -237,7 +243,9 @@ export default function CheckoutPage() {
           )}
 
           <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="text-2xl font-semibold text-slate-900">Fulfillment</h2>
+            <h2 className="text-2xl font-semibold text-slate-900">
+              Fulfillment
+            </h2>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               {[
                 {
@@ -265,7 +273,9 @@ export default function CheckoutPage() {
                       : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
-                  <p className="text-lg font-semibold text-slate-900">{option.title}</p>
+                  <p className="text-lg font-semibold text-slate-900">
+                    {option.title}
+                  </p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
                     {option.description}
                   </p>
@@ -304,7 +314,9 @@ export default function CheckoutPage() {
                   Delivery instructions
                   <textarea
                     value={deliveryInstructions}
-                    onChange={(event) => setDeliveryInstructions(event.target.value)}
+                    onChange={(event) =>
+                      setDeliveryInstructions(event.target.value)
+                    }
                     rows={3}
                     placeholder="Entry code, desk drop, or residence hall details"
                     className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
@@ -315,7 +327,9 @@ export default function CheckoutPage() {
           </section>
 
           <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="text-2xl font-semibold text-slate-900">Contact information</h2>
+            <h2 className="text-2xl font-semibold text-slate-900">
+              Contact information
+            </h2>
             <div className="mt-6 grid gap-4 md:grid-cols-3">
               <label className="block text-sm font-medium text-slate-700">
                 Full name
@@ -352,13 +366,16 @@ export default function CheckoutPage() {
           <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-semibold text-slate-900">Payment</h2>
+                <h2 className="text-2xl font-semibold text-slate-900">
+                  Payment
+                </h2>
                 <p className="mt-2 text-sm text-slate-500">
-                  A polished demo layer for card, campus charge, and wallet checkout.
+                  Card, campus charge, and wallet checkout are handled in one
+                  place.
                 </p>
               </div>
               <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
-                Frontend milestone
+                Payment options
               </span>
             </div>
 
@@ -377,7 +394,8 @@ export default function CheckoutPage() {
                 {
                   id: "paypal" as const,
                   title: "Wallet",
-                  description: "A PayPal-style express payment placeholder.",
+                  description:
+                    "Use a saved wallet for a faster express checkout.",
                 },
               ].map((option) => (
                 <button
@@ -390,7 +408,9 @@ export default function CheckoutPage() {
                       : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
-                  <p className="text-lg font-semibold text-slate-900">{option.title}</p>
+                  <p className="text-lg font-semibold text-slate-900">
+                    {option.title}
+                  </p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
                     {option.description}
                   </p>
@@ -430,7 +450,9 @@ export default function CheckoutPage() {
                       type="text"
                       value={securityCode}
                       onChange={(event) =>
-                        setSecurityCode(event.target.value.replace(/\D/g, "").slice(0, 4))
+                        setSecurityCode(
+                          event.target.value.replace(/\D/g, "").slice(0, 4),
+                        )
                       }
                       className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                     />
@@ -441,7 +463,9 @@ export default function CheckoutPage() {
                       type="text"
                       value={billingZip}
                       onChange={(event) =>
-                        setBillingZip(event.target.value.replace(/\D/g, "").slice(0, 5))
+                        setBillingZip(
+                          event.target.value.replace(/\D/g, "").slice(0, 5),
+                        )
                       }
                       className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                     />
@@ -449,8 +473,8 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
-                  This is still a frontend-only build, but the layout is now ready for a
-                  real payment intent flow later.
+                  Card details are captured here as part of the final checkout
+                  review.
                 </div>
               </div>
             )}
@@ -463,7 +487,9 @@ export default function CheckoutPage() {
                     type="text"
                     value={campusChargeId}
                     onChange={(event) =>
-                      setCampusChargeId(event.target.value.replace(/\D/g, "").slice(0, 10))
+                      setCampusChargeId(
+                        event.target.value.replace(/\D/g, "").slice(0, 10),
+                      )
                     }
                     className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                   />
@@ -478,8 +504,8 @@ export default function CheckoutPage() {
             {paymentMethod === "paypal" && (
               <div className="mt-6 rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
                 Express wallet checkout uses the contact email on file and would
-                normally redirect out to a payment provider before returning to the
-                order confirmation screen.
+                normally redirect out to a payment provider before returning to
+                the order confirmation screen.
               </div>
             )}
 
@@ -491,8 +517,8 @@ export default function CheckoutPage() {
                 className="mt-1 h-4 w-4 rounded border-slate-300 text-mcneeseBlue focus:ring-mcneeseBlue"
               />
               <span>
-                I reviewed the checkout details and understand this payment flow is a
-                demo-ready frontend for the bookstore milestone.
+                I reviewed the checkout details and authorize this order to be
+                submitted with the selected payment method.
               </span>
             </label>
           </section>
@@ -504,7 +530,9 @@ export default function CheckoutPage() {
           </p>
           {cartItems.length === 0 ? (
             <div className="mt-6 rounded-[24px] border border-dashed border-slate-300 px-5 py-8 text-center">
-              <p className="text-lg font-semibold text-slate-900">Nothing to review yet</p>
+              <p className="text-lg font-semibold text-slate-900">
+                Nothing to review yet
+              </p>
               <p className="mt-2 text-sm text-slate-500">
                 Add items to your cart before visiting checkout.
               </p>
@@ -524,7 +552,9 @@ export default function CheckoutPage() {
                     className="flex items-start justify-between gap-4 rounded-[22px] bg-slate-50 p-4"
                   >
                     <div>
-                      <p className="font-semibold text-slate-900">{item.product.title}</p>
+                      <p className="font-semibold text-slate-900">
+                        {item.product.title}
+                      </p>
                       <p className="mt-1 text-sm text-slate-500">
                         Qty {item.quantity} - {item.product.category}
                       </p>
@@ -558,7 +588,9 @@ export default function CheckoutPage() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>{fulfillment === "pickup" ? "Pickup" : "Delivery fee"}</span>
+                  <span>
+                    {fulfillment === "pickup" ? "Pickup" : "Delivery fee"}
+                  </span>
                   <span className="font-semibold text-slate-900">
                     {formatCurrency(pricing.fulfillmentFee)}
                   </span>
@@ -627,7 +659,7 @@ export default function CheckoutPage() {
                   : pricing.freeDeliveryRemaining === 0
                     ? "Delivery is free on this order."
                     : `${formatCurrency(
-                        pricing.freeDeliveryRemaining
+                        pricing.freeDeliveryRemaining,
                       )} away from free delivery.`}
               </div>
 

@@ -54,13 +54,13 @@ export default function HomePage() {
               Cowboy Online Bookstore
             </p>
             <h1 className="mt-6 max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">
-              Stripe checkout ready.
+              Course materials, ready to order.
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">
-              This site is built around the project brief: a secure, user-friendly
-              online bookstore where students can browse textbooks and office
-              supplies, manage wishlists, and move into checkout with pickup or
-              delivery options.
+              This site is built around the project brief: a secure,
+              user-friendly online bookstore where students can browse textbooks
+              and office supplies, manage wishlists, and move into checkout with
+              pickup or delivery options.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -80,10 +80,10 @@ export default function HomePage() {
 
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               <StatCard
-                  value={`${products.length}`}
-                  label="Products"
-                  detail="Textbooks, supplies, gear, and accessories from the catalog."
-                />
+                value="Semester-ready"
+                label="Catalog"
+                detail="Textbooks, supplies, tech, and gear refreshed for a full school-store lineup."
+              />
               <StatCard
                 value={`${wishlistCount}`}
                 label="Wishlist items"
@@ -102,13 +102,15 @@ export default function HomePage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                      Quick overview
+                    Quick overview
                   </p>
-                  <h2 className="mt-2 text-2xl font-semibold">Student-first flow</h2>
+                  <h2 className="mt-2 text-2xl font-semibold">
+                    Student-first flow
+                  </h2>
                 </div>
-                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
-                    Demo flow
-                  </span>
+                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                  Store ready
+                </span>
               </div>
               <div className="mt-6 space-y-4">
                 {[
@@ -117,7 +119,10 @@ export default function HomePage() {
                   "Review order totals and choose pickup or delivery at checkout.",
                   "See recent orders and confirmation states on the orders page.",
                 ].map((step, index) => (
-                  <div key={step} className="flex gap-4 rounded-2xl bg-slate-50 p-4">
+                  <div
+                    key={step}
+                    className="flex gap-4 rounded-2xl bg-slate-50 p-4"
+                  >
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-mcneeseBlue text-sm font-semibold text-white">
                       {index + 1}
                     </div>
@@ -126,8 +131,8 @@ export default function HomePage() {
                 ))}
               </div>
               <div className="mt-6 rounded-2xl bg-amber-50 p-4 text-sm text-amber-900">
-                {orders.length} recent order{orders.length === 1 ? "" : "s"} ready
-                to demo from the UI.
+                {orders.length} recent order{orders.length === 1 ? "" : "s"}{" "}
+                available on the orders page.
               </div>
             </div>
           </div>
@@ -145,7 +150,7 @@ export default function HomePage() {
         />
         <FeatureCard
           title="Checkout & orders"
-          description="Stripe checkout ready; choose pickup or delivery and review recent orders in the orders page."
+          description="Choose pickup or delivery at checkout and review recent orders in one place."
         />
       </section>
 

@@ -48,7 +48,7 @@ interface StorefrontContextValue {
   toggleWishlist: (productId: string) => void;
   updateWishlistPriority: (
     productId: string,
-    priority: WishlistPriority
+    priority: WishlistPriority,
   ) => void;
   removeFromWishlist: (productId: string) => void;
   moveWishlistToCart: (productId: string) => void;
@@ -62,7 +62,7 @@ interface StorefrontContextValue {
 }
 
 const StorefrontContext = createContext<StorefrontContextValue | undefined>(
-  undefined
+  undefined,
 );
 
 function useStoredState<T>(key: string, initialValue: T) {
@@ -95,7 +95,7 @@ function useStoredState<T>(key: string, initialValue: T) {
 function useNormalizedStoredState<T>(
   key: string,
   initialValue: T,
-  normalize: (value: unknown) => T
+  normalize: (value: unknown) => T,
 ) {
   const [value, setValue] = useState<T>(() => {
     if (typeof window === "undefined") {
@@ -132,18 +132,25 @@ export function StorefrontProvider({
   const [wishlist, setWishlist] = useNormalizedStoredState<WishlistEntry[]>(
     WISHLIST_KEY,
     [],
-    normalizeWishlist
+    normalizeWishlist,
   );
   const [orders, setOrders] = useNormalizedStoredState<OrderRecord[]>(
     ORDERS_KEY,
     seededOrders,
-    normalizeOrders
+    normalizeOrders,
   );
   const [appliedPromoCode, setAppliedPromoCode] = useStoredState<string | null>(
     PROMO_KEY,
-    null
+    null,
   );
   const [products, setProducts] = useState<Product[]>(storefrontProducts);
+
+  useEffect(() => {
+    setOrders((current) => {
+      const normalized = normalizeOrders(current);
+      return normalized.length === current.length ? current : normalized;
+    });
+  }, [setOrders]);
 
   useEffect(() => {
     let mounted = true;
@@ -162,7 +169,9 @@ export function StorefrontProvider({
           price: Number(product.price),
           description: product.description || "",
           shortDescription:
-            product.short_description || product.description?.slice(0, 120) || "",
+            product.short_description ||
+            product.description?.slice(0, 120) ||
+            "",
           badge: product.badge || "",
           course: product.course || undefined,
           format: product.format || "",
@@ -182,7 +191,7 @@ export function StorefrontProvider({
         }
       })
       .catch(() => {
-        // Keep the mock catalog as a fallback when the backend API is unavailable.
+        // Keep the local catalog as a fallback when the backend API is unavailable.
       });
 
     return () => {
@@ -210,22 +219,30 @@ export function StorefrontProvider({
 
   const addToCart = (productId: string, quantity = 1) => {
     const product = getProduct(productId);
-    if (!product) {
+    if (!product || quantity <= 0 || product.stock <= 0) {
       return;
     }
 
     setCart((current) => {
       const existing = current.find((item) => item.productId === productId);
       if (existing) {
-        const nextQuantity = Math.min(existing.quantity + quantity, product.stock);
+        const nextQuantity = Math.min(
+          existing.quantity + quantity,
+          product.stock,
+        );
         return current.map((item) =>
           item.productId === productId
             ? { ...item, quantity: nextQuantity }
-            : item
+            : item,
         );
       }
 
-      return [...current, { productId, quantity: Math.min(quantity, product.stock) }];
+      const nextQuantity = Math.min(quantity, product.stock);
+      if (nextQuantity <= 0) {
+        return current;
+      }
+
+      return [...current, { productId, quantity: nextQuantity }];
     });
   };
 
@@ -237,19 +254,23 @@ export function StorefrontProvider({
           return [item];
         }
 
-        const nextQuantity = product ? Math.min(quantity, product.stock) : quantity;
+        const nextQuantity = product
+          ? Math.min(quantity, product.stock)
+          : quantity;
 
         if (nextQuantity <= 0) {
           return [];
         }
 
         return [{ ...item, quantity: nextQuantity }];
-      })
+      }),
     );
   };
 
   const removeFromCart = (productId: string) => {
-    setCart((current) => current.filter((item) => item.productId !== productId));
+    setCart((current) =>
+      current.filter((item) => item.productId !== productId),
+    );
   };
 
   const addWishlistEntry = (productId: string) => {
@@ -290,18 +311,18 @@ export function StorefrontProvider({
 
   const updateWishlistPriority = (
     productId: string,
-    priority: WishlistPriority
+    priority: WishlistPriority,
   ) => {
     setWishlist((current) =>
       current.map((item) =>
-        item.productId === productId ? { ...item, priority } : item
-      )
+        item.productId === productId ? { ...item, priority } : item,
+      ),
     );
   };
 
   const removeFromWishlist = (productId: string) => {
     setWishlist((current) =>
-      current.filter((item) => item.productId !== productId)
+      current.filter((item) => item.productId !== productId),
     );
   };
 
@@ -311,26 +332,47 @@ export function StorefrontProvider({
   };
 
   const moveWishlistToCart = (productId: string) => {
+    const product = getProduct(productId);
+    const currentQuantity =
+      cart.find((item) => item.productId === productId)?.quantity ?? 0;
+
+    if (!product || product.stock <= currentQuantity) {
+      return;
+    }
+
     addToCart(productId, 1);
     removeFromWishlist(productId);
   };
 
   const moveAllWishlistToCart = () => {
-    setCart((current) => {
-      const next = [...current];
+    const nextCart = [...cart];
+    const remainingWishlist: WishlistEntry[] = [];
 
-      wishlist.forEach((entry) => {
-        const existing = next.find((item) => item.productId === entry.productId);
-        if (existing) {
-          existing.quantity += 1;
-        } else {
-          next.push({ productId: entry.productId, quantity: 1 });
+    wishlist.forEach((entry) => {
+      const product = getProduct(entry.productId);
+      if (!product || product.stock <= 0) {
+        remainingWishlist.push(entry);
+        return;
+      }
+
+      const existing = nextCart.find(
+        (item) => item.productId === entry.productId,
+      );
+      if (existing) {
+        if (existing.quantity >= product.stock) {
+          remainingWishlist.push(entry);
+          return;
         }
-      });
 
-      return next;
+        existing.quantity = Math.min(existing.quantity + 1, product.stock);
+        return;
+      }
+
+      nextCart.push({ productId: entry.productId, quantity: 1 });
     });
-    setWishlist([]);
+
+    setCart(nextCart);
+    setWishlist(remainingWishlist);
   };
 
   const clearCart = () => {
