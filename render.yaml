@@ -33,3 +33,4 @@ services:
   - type: pserv
     name: bookstore-db
     plan: free
+    ipAllowList: []
