@@ -67,15 +67,15 @@ export default function CheckoutPage() {
   const [pickupSlot, setPickupSlot] = useState(pickupWindows[0] ?? "");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [deliveryInstructions, setDeliveryInstructions] = useState("");
-  const [fullName, setFullName] = useState("Cowboy Student");
-  const [email, setEmail] = useState("student@mcneese.edu");
-  const [phone, setPhone] = useState("(337) 555-0144");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [cardNumber, setCardNumber] = useState("");
   const [expiration, setExpiration] = useState("");
   const [securityCode, setSecurityCode] = useState("");
   const [billingZip, setBillingZip] = useState("");
-  const [campusChargeId, setCampusChargeId] = useState("0002048");
+  const [campusChargeId, setCampusChargeId] = useState("");
   const [promoInput, setPromoInput] = useState(appliedPromoCode ?? "");
   const [promoFeedback, setPromoFeedback] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -229,6 +229,29 @@ export default function CheckoutPage() {
     navigate("/orders", { state: { orderId: order.id } });
   };
 
+  // Add validation helpers
+  const getEmailError = (email: string) => {
+    if (!email) return "";
+    if (!/^([a-zA-Z0-9_.+-]+)@mcneese\.edu$/.test(email.trim())) {
+      return "Enter a valid @mcneese.edu email address.";
+    }
+    return "";
+  };
+  const getPhoneError = (phone: string) => {
+    if (!phone) return "";
+    if (phone.replace(/\D/g, "").length !== 10) {
+      return "Enter a valid 10-digit phone number.";
+    }
+    return "";
+  };
+  const getCampusIdError = (id: string) => {
+    if (!id) return "";
+    if (!/^000[0-9]{6}$/.test(id)) {
+      return "Campus charge ID must be 9 digits and start with 000.";
+    }
+    return "";
+  };
+
   return (
     <StorefrontLayout>
       <section className="animate-rise rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
@@ -367,21 +390,40 @@ export default function CheckoutPage() {
                 Email
                 <input
                   type="email"
+                  name="email"
+                  autoComplete="email"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                  onChange={e => setEmail(e.target.value)}
+                  className={`mt-2 w-full rounded-2xl border ${getEmailError(email) ? 'border-red-400' : 'border-slate-200'} px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10`}
                 />
+                {getEmailError(email) && (
+                  <div className="mt-1 text-xs text-red-600">{getEmailError(email)}</div>
+                )}
               </label>
               <label className="block text-sm font-medium text-slate-700">
                 Phone
                 <input
                   type="tel"
+                  name="phone"
+                  autoComplete="tel"
+                  maxLength={14}
                   value={phone}
-                  onChange={(event) =>
-                    setPhone(formatPhoneNumber(event.target.value))
-                  }
-                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                  onChange={e => {
+                    let val = e.target.value.replace(/[^0-9]/g, "");
+                    if (val.length > 10) val = val.slice(0, 10);
+                    if (val.length < 4) {
+                      setPhone(val);
+                    } else if (val.length < 7) {
+                      setPhone(`(${val.slice(0, 3)}) ${val.slice(3)}`);
+                    } else {
+                      setPhone(`(${val.slice(0, 3)}) ${val.slice(3, 6)}-${val.slice(6)}`);
+                    }
+                  }}
+                  className={`mt-2 w-full rounded-2xl border ${getPhoneError(phone) ? 'border-red-400' : 'border-slate-200'} px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10`}
                 />
+                {getPhoneError(phone) && (
+                  <div className="mt-1 text-xs text-red-600">{getPhoneError(phone)}</div>
+                )}
               </label>
             </div>
           </section>
@@ -519,12 +561,20 @@ export default function CheckoutPage() {
                   Student or campus charge ID
                   <input
                     type="text"
+                    inputMode="numeric"
+                    name="campus-id"
+                    autoComplete="off"
+                    maxLength={9}
                     value={campusChargeId}
-                    onChange={(event) =>
-                      setCampusChargeId(event.target.value.replace(/\D/g, "").slice(0, 10))
-                    }
-                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                    onChange={e => {
+                      let val = e.target.value.replace(/[^0-9]/g, "");
+                      setCampusChargeId(val.slice(0, 9));
+                    }}
+                    className={`mt-2 w-full rounded-2xl border ${getCampusIdError(campusChargeId) ? 'border-red-400' : 'border-slate-200'} px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10`}
                   />
+                  {getCampusIdError(campusChargeId) && (
+                    <div className="mt-1 text-xs text-red-600">{getCampusIdError(campusChargeId)}</div>
+                  )}
                 </label>
                 <div className="rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
                   Campus charge keeps the payment step simple for students whose

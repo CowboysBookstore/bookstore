@@ -8,3 +8,8 @@ pytest==8.0.2
 pytest-django==4.8.0
 black==24.2.0
 stripe==5.0.0
+
+# Production server & database
+gunicorn==22.0.0
+psycopg2-binary==2.9.9
+dj-database-url==2.1.0

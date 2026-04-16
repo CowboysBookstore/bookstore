@@ -1,0 +1,35 @@
+DEPLOY TO RENDER RIGHT NOW
+===========================
+
+1. Commit everything:
+   cd ~/bookstore
+   git add .
+   git commit -m "Ready for Render deployment"
+   git push origin main
+
+2. Go to https://render.com
+
+3. Sign up with GitHub (if not already)
+
+4. Click "New +" → "Blueprint"
+
+5. Select your "bookstore" repository
+
+6. Click "Create" and wait ~3-5 minutes
+
+7. Once deployed, go to Dashboard → bookstore-backend → Environment
+
+8. Add these environment variables (copy from your .env):
+   - DJANGO_SECRET_KEY
+   - EMAIL_HOST_USER (your Gmail)
+   - EMAIL_HOST_PASSWORD (Gmail app password from https://myaccount.google.com/apppasswords)
+   - JWT_SIGNING_KEY
+   - STRIPE_SECRET_KEY (optional)
+
+9. Save and Render auto-restarts
+
+DONE! Your app is live at:
+- Frontend: https://bookstore-frontend.onrender.com
+- Backend: https://bookstore-backend.onrender.com
+
+That's it. Go.
