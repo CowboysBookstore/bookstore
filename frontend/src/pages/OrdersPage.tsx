@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import ProductImage from "../components/ProductImage";
 import StorefrontLayout from "../components/StorefrontLayout";
 import {
   formatCurrency,
@@ -9,7 +10,7 @@ import { useStorefront } from "../storefront/StorefrontContext";
 
 export default function OrdersPage() {
   const location = useLocation();
-  const { orders } = useStorefront();
+  const { orders, getProduct } = useStorefront();
   const latestOrderId = (location.state as { orderId?: string } | null)?.orderId;
   const latestOrder = latestOrderId
     ? orders.find((order) => order.id === latestOrderId)
@@ -132,20 +133,31 @@ export default function OrdersPage() {
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {order.items.map((item) => (
-                <div
-                  key={`${order.id}-${item.productId}`}
-                  className="rounded-[22px] bg-slate-50 p-4"
-                >
-                  <p className="font-semibold text-slate-900">{item.title}</p>
-                  <p className="mt-2 text-sm text-slate-500">
-                    Qty {item.quantity} at {formatCurrency(item.unitPrice)}
-                  </p>
-                  <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                    {item.category}
-                  </p>
-                </div>
-              ))}
+              {order.items.map((item) => {
+                const product = getProduct(item.productId);
+
+                return (
+                  <div
+                    key={`${order.id}-${item.productId}`}
+                    className="rounded-[22px] bg-slate-50 p-4"
+                  >
+                    {product ? (
+                      <ProductImage
+                        product={product}
+                        className="mb-4 h-36 rounded-[18px]"
+                        overlayClassName="bg-slate-950/8"
+                      />
+                    ) : null}
+                    <p className="font-semibold text-slate-900">{item.title}</p>
+                    <p className="mt-2 text-sm text-slate-500">
+                      Qty {item.quantity} at {formatCurrency(item.unitPrice)}
+                    </p>
+                    <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                      {item.category}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </article>
         ))}

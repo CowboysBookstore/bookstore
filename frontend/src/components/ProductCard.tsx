@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import ProductImage from "./ProductImage";
 import { formatCurrency } from "../storefront/data";
 import { useStorefront } from "../storefront/StorefrontContext";
 import type { Product } from "../storefront/types";
@@ -11,42 +12,45 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-      <div
-        className="relative h-44 p-5 text-white"
-        style={{ background: product.coverGradient }}
+      <ProductImage
+        product={product}
+        className="h-48 p-5 text-white"
+        overlayClassName="bg-gradient-to-b from-slate-950/10 via-slate-950/10 to-slate-950/75"
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex flex-wrap gap-2">
-            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/95">
-              {product.category}
-            </span>
-            {cartQuantity > 0 && (
-              <span className="rounded-full bg-black/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
-                In cart: {cartQuantity}
+        <div className="flex h-full flex-col justify-between">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/95">
+                {product.category}
               </span>
-            )}
+              {cartQuantity > 0 && (
+                <span className="rounded-full bg-black/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+                  In cart: {cartQuantity}
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => toggleWishlist(product.id)}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                isWishlisted
+                  ? "bg-white text-slate-900"
+                  : "bg-black/15 text-white hover:bg-black/25"
+              }`}
+            >
+              {isWishlisted ? "Saved" : "Wishlist"}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => toggleWishlist(product.id)}
-            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-              isWishlisted
-                ? "bg-white text-slate-900"
-                : "bg-black/15 text-white hover:bg-black/25"
-            }`}
-          >
-            {isWishlisted ? "Saved" : "Wishlist"}
-          </button>
+          <div className="max-w-[15rem]">
+            <p className="text-xs uppercase tracking-[0.24em] text-white/70">
+              {product.badge}
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold leading-tight">
+              {product.title}
+            </h3>
+          </div>
         </div>
-        <div className="mt-10 max-w-[15rem]">
-          <p className="text-xs uppercase tracking-[0.24em] text-white/70">
-            {product.badge}
-          </p>
-          <h3 className="mt-2 text-2xl font-semibold leading-tight">
-            {product.title}
-          </h3>
-        </div>
-      </div>
+      </ProductImage>
 
       <div className="flex flex-1 flex-col justify-between p-5">
         <div className="flex items-start justify-between gap-3">

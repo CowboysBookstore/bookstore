@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Wireless Mouse Slim</title>
+  <desc id="desc">Illustrated catalog artwork for Wireless Mouse Slim</desc>
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="55%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#bfdbfe" />
+    </linearGradient>
+    <linearGradient id="objectGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(15, 23, 42, 0.96)" />
+      <stop offset="100%" stop-color="rgba(59, 130, 246, 0.88)" />
+    </linearGradient>
+    <radialGradient id="glowA" cx="20%" cy="15%" r="70%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.38)" />
+      <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+    </radialGradient>
+    <radialGradient id="glowB" cx="85%" cy="18%" r="60%">
+      <stop offset="0%" stop-color="rgba(191, 219, 254, 0.36)" />
+      <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="1200" fill="url(#bgGradient)" />
+  <rect width="1600" height="1200" fill="url(#glowA)" />
+  <rect width="1600" height="1200" fill="url(#glowB)" />
+  <rect x="60" y="60" width="1480" height="1080" rx="48" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="2" />
+  
+      <g opacity="0.18" stroke="rgba(191, 219, 254, 0.4)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <path d="M160 230 H360 V430 H560" />
+        <path d="M1040 220 H1320 V380 H1160" />
+        <path d="M260 930 H520 V760 H780" />
+        <path d="M980 980 H1290 V800 H1120" />
+        <circle cx="360" cy="430" r="18" fill="rgba(191, 219, 254, 0.4)" stroke="none" />
+        <circle cx="560" cy="430" r="18" fill="rgba(191, 219, 254, 0.4)" stroke="none" />
+        <circle cx="1160" cy="380" r="18" fill="rgba(191, 219, 254, 0.4)" stroke="none" />
+        <circle cx="780" cy="760" r="18" fill="rgba(191, 219, 254, 0.4)" stroke="none" />
+      </g>
+  
+    <g transform="translate(110 92)">
+      <rect width="188" height="50" rx="25" fill="rgba(15, 23, 42, 0.42)" />
+      <text x="22" y="33" fill="#ffffff" font-size="22" font-family="Arial, sans-serif" font-weight="700" letter-spacing="1.4">PORTABLE</text>
+    </g>
+  
+    <g transform="translate(1114 92)">
+      <rect width="206" height="50" rx="25" fill="rgba(15, 23, 42, 0.22)" />
+      <text x="22" y="33" fill="#ffffff" font-size="22" font-family="Arial, sans-serif" font-weight="700" letter-spacing="1.4">ACCESSORY</text>
+    </g>
+  
+    <g transform="translate(540 170)">
+      <ellipse cx="230" cy="650" rx="180" ry="36" fill="rgba(15,23,42,0.20)" />
+      <path d="M230 96 C334 96 398 182 398 330 V446 C398 564 324 652 230 652 C136 652 62 564 62 446 V330 C62 182 126 96 230 96 Z" fill="rgba(255,255,255,0.92)" />
+      <path d="M230 96 C334 96 398 182 398 330 V446 C398 564 324 652 230 652 C136 652 62 564 62 446 V330 C62 182 126 96 230 96 Z" fill="url(#objectGradient)" opacity="0.96" />
+      <path d="M230 112 V284" stroke="rgba(255,255,255,0.32)" stroke-width="10" stroke-linecap="round" />
+      <rect x="198" y="152" width="64" height="102" rx="28" fill="rgba(255,255,255,0.16)" />
+    </g>
+  
+    <g transform="translate(110 960)">
+      <rect width="540" height="150" rx="32" fill="rgba(255,255,255,0.16)" stroke="rgba(255,255,255,0.28)" stroke-width="3" />
+      <text x="34" y="58" fill="rgba(255,255,255,0.72)" font-size="22" font-family="Arial, sans-serif" font-weight="700" letter-spacing="3">TECH ACCESSORIES</text>
+      <text x="34" y="110" fill="#ffffff" font-size="54" font-family="Arial, sans-serif" font-weight="800">Wireless</text>
+      <text x="34" y="138" fill="#bfdbfe" font-size="24" font-family="Arial, sans-serif" font-weight="700" letter-spacing="1.6">MOUSE</text>
+    </g>
+</svg>

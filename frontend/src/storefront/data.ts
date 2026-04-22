@@ -21,6 +21,7 @@ type CatalogProductRecord = {
   format: string;
   price: string;
   inventory: number;
+  image_url: string;
   rating: number;
   pickup_note: string;
   delivery_note: string;
@@ -42,6 +43,7 @@ export const storefrontProducts: Product[] = catalogRecords.map((product) => ({
   id: product.slug,
   title: product.title,
   category: product.category,
+  imageUrl: product.image_url,
   price: Number(product.price),
   description: product.description,
   shortDescription: product.short_description,

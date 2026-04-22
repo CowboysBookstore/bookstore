@@ -11,7 +11,7 @@
     "price": "64.99",
     "inventory": 32,
     "sku": "ENG-101",
-    "image_url": "",
+    "image_url": "/product-images/eng-101-writing-handbook.svg",
     "rating": 4.8,
     "pickup_note": "Ready for same-day campus pickup",
     "delivery_note": "Delivers in 2 business days",
@@ -34,7 +34,7 @@
     "price": "88.50",
     "inventory": 18,
     "sku": "MATH-231",
-    "image_url": "",
+    "image_url": "/product-images/math-231-calculus-pack.svg",
     "rating": 4.6,
     "pickup_note": "Pickup available after 10 AM",
     "delivery_note": "Ships with tracking this week",
@@ -57,7 +57,7 @@
     "price": "39.25",
     "inventory": 41,
     "sku": "BIO-214",
-    "image_url": "",
+    "image_url": "/product-images/bio-214-lab-kit.svg",
     "rating": 4.7,
     "pickup_note": "Available for front-counter pickup",
     "delivery_note": "Delivery estimate: 3 business days",
@@ -79,7 +79,7 @@
     "price": "18.75",
     "inventory": 67,
     "sku": "PLANNER-1",
-    "image_url": "",
+    "image_url": "/product-images/cowboy-study-planner.svg",
     "rating": 4.9,
     "pickup_note": "Pickup ready in 1 hour",
     "delivery_note": "Eligible for low-cost delivery",
@@ -102,7 +102,7 @@
     "price": "129.00",
     "inventory": 12,
     "sku": "CALC-PRO",
-    "image_url": "",
+    "image_url": "/product-images/graphing-calculator-pro.svg",
     "rating": 4.9,
     "pickup_note": "Reserve today and pick up tomorrow",
     "delivery_note": "Priority delivery available",
@@ -124,7 +124,7 @@
     "price": "27.99",
     "inventory": 29,
     "sku": "SLEEVE-14",
-    "image_url": "",
+    "image_url": "/product-images/laptop-sleeve-14.svg",
     "rating": 4.5,
     "pickup_note": "Pickup available this afternoon",
     "delivery_note": "Delivery estimate: 2-4 business days",
@@ -146,11 +146,15 @@
     "price": "54.00",
     "inventory": 22,
     "sku": "HOODIE-NVY",
-    "image_url": "",
+    "image_url": "/product-images/cowboy-hoodie-navy.svg",
     "rating": 4.8,
     "pickup_note": "Pickup stocked in most sizes",
     "delivery_note": "Delivery estimate: 4 business days",
-    "highlights": ["Midweight fleece", "Embroidered crest", "Unisex fit"],
+    "highlights": [
+      "Midweight fleece",
+      "Embroidered crest",
+      "Unisex fit"
+    ],
     "cover_gradient": "linear-gradient(135deg, #172554 0%, #1d4ed8 55%, #bfdbfe 100%)"
   },
   {
@@ -164,7 +168,7 @@
     "price": "24.50",
     "inventory": 35,
     "sku": "TUMBLER-GOLD",
-    "image_url": "",
+    "image_url": "/product-images/mcneese-tumbler-gold.svg",
     "rating": 4.7,
     "pickup_note": "Pickup available near register one",
     "delivery_note": "Ships in recyclable packaging",
@@ -187,7 +191,7 @@
     "price": "47.25",
     "inventory": 26,
     "sku": "HIST-210",
-    "image_url": "",
+    "image_url": "/product-images/hist-210-civil-war-reader.svg",
     "rating": 4.6,
     "pickup_note": "Ready for same-day campus pickup",
     "delivery_note": "Delivers in 2 business days",
@@ -210,11 +214,15 @@
     "price": "29.95",
     "inventory": 38,
     "sku": "PSYC-201",
-    "image_url": "",
+    "image_url": "/product-images/psyc-201-study-guide.svg",
     "rating": 4.5,
     "pickup_note": "Pickup ready in 1 hour",
     "delivery_note": "Delivery estimate: 2-4 business days",
-    "highlights": ["Chapter reviews", "Glossary quick checks", "Quiz practice"],
+    "highlights": [
+      "Chapter reviews",
+      "Glossary quick checks",
+      "Quiz practice"
+    ],
     "cover_gradient": "linear-gradient(135deg, #0f766e 0%, #0ea5e9 55%, #d1fae5 100%)"
   },
   {
@@ -229,11 +237,15 @@
     "price": "52.00",
     "inventory": 31,
     "sku": "CHEM-121",
-    "image_url": "",
+    "image_url": "/product-images/chem-121-lab-manual.svg",
     "rating": 4.7,
     "pickup_note": "Available for front-counter pickup",
     "delivery_note": "Delivery estimate: 3 business days",
-    "highlights": ["Experiment pages", "Safety reminders", "Report templates"],
+    "highlights": [
+      "Experiment pages",
+      "Safety reminders",
+      "Report templates"
+    ],
     "cover_gradient": "linear-gradient(135deg, #14532d 0%, #16a34a 50%, #bbf7d0 100%)"
   },
   {
@@ -248,7 +260,7 @@
     "price": "71.40",
     "inventory": 17,
     "sku": "BUS-310",
-    "image_url": "",
+    "image_url": "/product-images/bus-310-marketing-casebook.svg",
     "rating": 4.6,
     "pickup_note": "Pickup available after 10 AM",
     "delivery_note": "Ships with tracking this week",
@@ -271,7 +283,7 @@
     "price": "58.75",
     "inventory": 24,
     "sku": "NURS-205",
-    "image_url": "",
+    "image_url": "/product-images/nurs-205-clinical-skills-handbook.svg",
     "rating": 4.9,
     "pickup_note": "Ready for same-day campus pickup",
     "delivery_note": "Delivers in 2 business days",
@@ -294,11 +306,15 @@
     "price": "63.50",
     "inventory": 27,
     "sku": "CS-150",
-    "image_url": "",
+    "image_url": "/product-images/cs-150-python-starter-text.svg",
     "rating": 4.8,
     "pickup_note": "Pickup ready in 1 hour",
     "delivery_note": "Delivery estimate: 2-4 business days",
-    "highlights": ["Code labs", "Debugging examples", "Mini projects"],
+    "highlights": [
+      "Code labs",
+      "Debugging examples",
+      "Mini projects"
+    ],
     "cover_gradient": "linear-gradient(135deg, #0f172a 0%, #2563eb 55%, #67e8f9 100%)"
   },
   {
@@ -313,11 +329,15 @@
     "price": "94.20",
     "inventory": 19,
     "sku": "ACCT-220",
-    "image_url": "",
+    "image_url": "/product-images/acct-220-financial-accounting-set.svg",
     "rating": 4.7,
     "pickup_note": "Pickup available after 10 AM",
     "delivery_note": "Ships with tracking this week",
-    "highlights": ["Ledger drills", "Statement practice", "Quiz checkpoints"],
+    "highlights": [
+      "Ledger drills",
+      "Statement practice",
+      "Quiz checkpoints"
+    ],
     "cover_gradient": "linear-gradient(135deg, #312e81 0%, #6366f1 55%, #e0e7ff 100%)"
   },
   {
@@ -332,7 +352,7 @@
     "price": "41.80",
     "inventory": 21,
     "sku": "ART-130",
-    "image_url": "",
+    "image_url": "/product-images/art-130-design-foundations-reader.svg",
     "rating": 4.5,
     "pickup_note": "Available for front-counter pickup",
     "delivery_note": "Delivery estimate: 3 business days",
@@ -354,11 +374,15 @@
     "price": "16.99",
     "inventory": 84,
     "sku": "NOTE-5PK",
-    "image_url": "",
+    "image_url": "/product-images/college-ruled-notebook-5pk.svg",
     "rating": 4.7,
     "pickup_note": "Pickup ready in 1 hour",
     "delivery_note": "Eligible for low-cost delivery",
-    "highlights": ["Perforated pages", "Durable covers", "Color assortment"],
+    "highlights": [
+      "Perforated pages",
+      "Durable covers",
+      "Color assortment"
+    ],
     "cover_gradient": "linear-gradient(135deg, #1d4ed8 0%, #60a5fa 55%, #e0f2fe 100%)"
   },
   {
@@ -372,11 +396,15 @@
     "price": "9.49",
     "inventory": 120,
     "sku": "PEN-GEL-12",
-    "image_url": "",
+    "image_url": "/product-images/black-gel-pen-pack.svg",
     "rating": 4.8,
     "pickup_note": "Pickup ready in 1 hour",
     "delivery_note": "Eligible for low-cost delivery",
-    "highlights": ["Quick-dry ink", "Comfort grip", "Smudge resistant"],
+    "highlights": [
+      "Quick-dry ink",
+      "Comfort grip",
+      "Smudge resistant"
+    ],
     "cover_gradient": "linear-gradient(135deg, #0f172a 0%, #475569 55%, #cbd5e1 100%)"
   },
   {
@@ -390,11 +418,15 @@
     "price": "8.75",
     "inventory": 92,
     "sku": "HIGHLIGHT-PASTEL",
-    "image_url": "",
+    "image_url": "/product-images/pastel-highlighter-set.svg",
     "rating": 4.6,
     "pickup_note": "Available for front-counter pickup",
     "delivery_note": "Delivery estimate: 2-4 business days",
-    "highlights": ["Soft color palette", "Chisel tips", "No-bleed formula"],
+    "highlights": [
+      "Soft color palette",
+      "Chisel tips",
+      "No-bleed formula"
+    ],
     "cover_gradient": "linear-gradient(135deg, #ec4899 0%, #f9a8d4 50%, #fce7f3 100%)"
   },
   {
@@ -408,11 +440,15 @@
     "price": "7.95",
     "inventory": 68,
     "sku": "GRAPH-PAD",
-    "image_url": "",
+    "image_url": "/product-images/engineering-graph-pad.svg",
     "rating": 4.5,
     "pickup_note": "Pickup available this afternoon",
     "delivery_note": "Delivery estimate: 2-4 business days",
-    "highlights": ["Tear-off sheets", "Fine grid", "Lab-friendly layout"],
+    "highlights": [
+      "Tear-off sheets",
+      "Fine grid",
+      "Lab-friendly layout"
+    ],
     "cover_gradient": "linear-gradient(135deg, #0f766e 0%, #14b8a6 55%, #ccfbf1 100%)"
   },
   {
@@ -426,7 +462,7 @@
     "price": "21.50",
     "inventory": 57,
     "sku": "BINDER-KIT",
-    "image_url": "",
+    "image_url": "/product-images/binder-starter-kit.svg",
     "rating": 4.7,
     "pickup_note": "Pickup ready in 1 hour",
     "delivery_note": "Eligible for low-cost delivery",
@@ -448,11 +484,15 @@
     "price": "6.49",
     "inventory": 110,
     "sku": "INDEX-STUDY",
-    "image_url": "",
+    "image_url": "/product-images/index-card-study-pack.svg",
     "rating": 4.6,
     "pickup_note": "Available for front-counter pickup",
     "delivery_note": "Delivery estimate: 2-4 business days",
-    "highlights": ["Ruled cards", "Color tabs", "Portable case"],
+    "highlights": [
+      "Ruled cards",
+      "Color tabs",
+      "Portable case"
+    ],
     "cover_gradient": "linear-gradient(135deg, #4338ca 0%, #818cf8 55%, #e0e7ff 100%)"
   },
   {
@@ -466,11 +506,15 @@
     "price": "32.00",
     "inventory": 46,
     "sku": "USBC-128",
-    "image_url": "",
+    "image_url": "/product-images/usb-c-flash-drive-128.svg",
     "rating": 4.7,
     "pickup_note": "Pickup available this afternoon",
     "delivery_note": "Delivery estimate: 2-4 business days",
-    "highlights": ["128GB storage", "USB-C connector", "Keyring loop"],
+    "highlights": [
+      "128GB storage",
+      "USB-C connector",
+      "Keyring loop"
+    ],
     "cover_gradient": "linear-gradient(135deg, #1f2937 0%, #0ea5e9 55%, #dbeafe 100%)"
   },
   {
@@ -484,11 +528,15 @@
     "price": "79.00",
     "inventory": 25,
     "sku": "EARBUD-NC",
-    "image_url": "",
+    "image_url": "/product-images/noise-cancel-earbuds.svg",
     "rating": 4.8,
     "pickup_note": "Reserve today and pick up tomorrow",
     "delivery_note": "Priority delivery available",
-    "highlights": ["Noise reduction", "Charging case", "Clear call mic"],
+    "highlights": [
+      "Noise reduction",
+      "Charging case",
+      "Clear call mic"
+    ],
     "cover_gradient": "linear-gradient(135deg, #111827 0%, #334155 55%, #94a3b8 100%)"
   },
   {
@@ -502,11 +550,15 @@
     "price": "24.95",
     "inventory": 61,
     "sku": "MOUSE-SLIM",
-    "image_url": "",
+    "image_url": "/product-images/wireless-mouse-slim.svg",
     "rating": 4.6,
     "pickup_note": "Pickup available this afternoon",
     "delivery_note": "Eligible for low-cost delivery",
-    "highlights": ["Quiet clicks", "Compact size", "Long battery life"],
+    "highlights": [
+      "Quiet clicks",
+      "Compact size",
+      "Long battery life"
+    ],
     "cover_gradient": "linear-gradient(135deg, #0f172a 0%, #3b82f6 55%, #bfdbfe 100%)"
   },
   {
@@ -520,7 +572,7 @@
     "price": "34.50",
     "inventory": 48,
     "sku": "POWER-10K",
-    "image_url": "",
+    "image_url": "/product-images/portable-charger-10000.svg",
     "rating": 4.7,
     "pickup_note": "Pickup available this afternoon",
     "delivery_note": "Delivery estimate: 2-4 business days",
@@ -542,11 +594,15 @@
     "price": "44.99",
     "inventory": 28,
     "sku": "WEBCAM-HD",
-    "image_url": "",
+    "image_url": "/product-images/webcam-hd-study.svg",
     "rating": 4.5,
     "pickup_note": "Reserve today and pick up tomorrow",
     "delivery_note": "Priority delivery available",
-    "highlights": ["1080p video", "Auto light correction", "Clip-on mount"],
+    "highlights": [
+      "1080p video",
+      "Auto light correction",
+      "Clip-on mount"
+    ],
     "cover_gradient": "linear-gradient(135deg, #1e293b 0%, #6366f1 55%, #c7d2fe 100%)"
   },
   {
@@ -560,11 +616,15 @@
     "price": "29.50",
     "inventory": 39,
     "sku": "STAND-FOLD",
-    "image_url": "",
+    "image_url": "/product-images/laptop-stand-folding.svg",
     "rating": 4.7,
     "pickup_note": "Pickup available this afternoon",
     "delivery_note": "Eligible for low-cost delivery",
-    "highlights": ["Adjustable angles", "Fold-flat design", "Ventilated frame"],
+    "highlights": [
+      "Adjustable angles",
+      "Fold-flat design",
+      "Ventilated frame"
+    ],
     "cover_gradient": "linear-gradient(135deg, #475569 0%, #94a3b8 55%, #e2e8f0 100%)"
   },
   {
@@ -578,11 +638,15 @@
     "price": "39.99",
     "inventory": 33,
     "sku": "HUB-6IN1",
-    "image_url": "",
+    "image_url": "/product-images/usb-c-hub-6in1.svg",
     "rating": 4.6,
     "pickup_note": "Reserve today and pick up tomorrow",
     "delivery_note": "Priority delivery available",
-    "highlights": ["HDMI output", "Multiple ports", "Travel-friendly size"],
+    "highlights": [
+      "HDMI output",
+      "Multiple ports",
+      "Travel-friendly size"
+    ],
     "cover_gradient": "linear-gradient(135deg, #0f172a 0%, #0891b2 55%, #cffafe 100%)"
   },
   {
@@ -596,11 +660,15 @@
     "price": "22.00",
     "inventory": 44,
     "sku": "CAP-WHT",
-    "image_url": "",
+    "image_url": "/product-images/cowboy-cap-white.svg",
     "rating": 4.7,
     "pickup_note": "Pickup stocked in most sizes",
     "delivery_note": "Delivery estimate: 4 business days",
-    "highlights": ["Adjustable strap", "Curved brim", "Embroidered logo"],
+    "highlights": [
+      "Adjustable strap",
+      "Curved brim",
+      "Embroidered logo"
+    ],
     "cover_gradient": "linear-gradient(135deg, #1d4ed8 0%, #93c5fd 55%, #f8fafc 100%)"
   },
   {
@@ -614,11 +682,15 @@
     "price": "7.50",
     "inventory": 95,
     "sku": "LANYARD-CL",
-    "image_url": "",
+    "image_url": "/product-images/mcneese-lanyard-classic.svg",
     "rating": 4.8,
     "pickup_note": "Pickup available near register one",
     "delivery_note": "Ships in recyclable packaging",
-    "highlights": ["Safety breakaway", "Card clip", "Blue and gold weave"],
+    "highlights": [
+      "Safety breakaway",
+      "Card clip",
+      "Blue and gold weave"
+    ],
     "cover_gradient": "linear-gradient(135deg, #1e3a8a 0%, #facc15 50%, #fef9c3 100%)"
   },
   {
@@ -632,7 +704,7 @@
     "price": "19.99",
     "inventory": 52,
     "sku": "TOTE-CANVAS",
-    "image_url": "",
+    "image_url": "/product-images/bookstore-tote-canvas.svg",
     "rating": 4.6,
     "pickup_note": "Pickup available near register one",
     "delivery_note": "Ships in recyclable packaging",
@@ -654,11 +726,15 @@
     "price": "48.00",
     "inventory": 30,
     "sku": "CREW-HEATHER",
-    "image_url": "",
+    "image_url": "/product-images/cowboy-crewneck-heather.svg",
     "rating": 4.8,
     "pickup_note": "Pickup stocked in most sizes",
     "delivery_note": "Delivery estimate: 4 business days",
-    "highlights": ["Soft fleece", "Unisex fit", "Printed graphics"],
+    "highlights": [
+      "Soft fleece",
+      "Unisex fit",
+      "Printed graphics"
+    ],
     "cover_gradient": "linear-gradient(135deg, #334155 0%, #64748b 55%, #e2e8f0 100%)"
   },
   {
@@ -672,11 +748,15 @@
     "price": "32.50",
     "inventory": 27,
     "sku": "BLANKET-BL",
-    "image_url": "",
+    "image_url": "/product-images/stadium-blanket-blue.svg",
     "rating": 4.5,
     "pickup_note": "Pickup available near register one",
     "delivery_note": "Ships in recyclable packaging",
-    "highlights": ["Roll-up strap", "Fleece warmth", "Large coverage"],
+    "highlights": [
+      "Roll-up strap",
+      "Fleece warmth",
+      "Large coverage"
+    ],
     "cover_gradient": "linear-gradient(135deg, #172554 0%, #2563eb 55%, #bfdbfe 100%)"
   },
   {
@@ -690,11 +770,15 @@
     "price": "26.00",
     "inventory": 63,
     "sku": "TEE-ATH",
-    "image_url": "",
+    "image_url": "/product-images/cowboy-athletics-tee.svg",
     "rating": 4.7,
     "pickup_note": "Pickup stocked in most sizes",
     "delivery_note": "Delivery estimate: 4 business days",
-    "highlights": ["Vintage print", "Soft cotton", "Everyday fit"],
+    "highlights": [
+      "Vintage print",
+      "Soft cotton",
+      "Everyday fit"
+    ],
     "cover_gradient": "linear-gradient(135deg, #1e40af 0%, #60a5fa 55%, #dbeafe 100%)"
   },
   {
@@ -708,11 +792,15 @@
     "price": "14.00",
     "inventory": 58,
     "sku": "SOCKS-2PK",
-    "image_url": "",
+    "image_url": "/product-images/cowboy-socks-2pk.svg",
     "rating": 4.6,
     "pickup_note": "Pickup available near register one",
     "delivery_note": "Ships in recyclable packaging",
-    "highlights": ["Blue and gold stripes", "Soft knit", "Two-pair pack"],
+    "highlights": [
+      "Blue and gold stripes",
+      "Soft knit",
+      "Two-pair pack"
+    ],
     "cover_gradient": "linear-gradient(135deg, #1d4ed8 0%, #facc15 50%, #fef08a 100%)"
   }
 ]

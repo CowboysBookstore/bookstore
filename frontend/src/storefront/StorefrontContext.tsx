@@ -25,6 +25,9 @@ const CART_KEY = "bookstore.cart";
 const WISHLIST_KEY = "bookstore.wishlist";
 const ORDERS_KEY = "bookstore.orders";
 const PROMO_KEY = "bookstore.promo";
+const fallbackProductsById = new Map(
+  storefrontProducts.map((product) => [product.id, product]),
+);
 
 interface PromoCodeResult {
   success: boolean;
@@ -162,29 +165,40 @@ export function StorefrontProvider({
           return;
         }
 
-        const apiProducts = res.data.map((product: any) => ({
-          id: product.slug || String(product.id),
-          title: product.title,
-          category: (product.category as Product["category"]) || "Textbooks",
-          price: Number(product.price),
-          description: product.description || "",
-          shortDescription:
-            product.short_description ||
-            product.description?.slice(0, 120) ||
-            "",
-          badge: product.badge || "",
-          course: product.course || undefined,
-          format: product.format || "",
-          stock: product.inventory || 0,
-          rating: product.rating || 4.5,
-          pickupNote: product.pickup_note || "",
-          deliveryNote: product.delivery_note || "",
-          highlights: product.highlights || [],
-          coverGradient:
-            product.cover_gradient ||
-            product.coverGradient ||
-            "linear-gradient(135deg,#0f172a 0%, #1d4ed8 55%, #60a5fa 100%)",
-        }));
+        const apiProducts = res.data.map((product: any) => {
+          const productId = product.slug || String(product.id);
+          const fallbackProduct = fallbackProductsById.get(productId);
+
+          return {
+            id: productId,
+            title: product.title,
+            category: (product.category as Product["category"]) || "Textbooks",
+            imageUrl:
+              product.image_url ||
+              product.imageUrl ||
+              fallbackProduct?.imageUrl ||
+              "",
+            price: Number(product.price),
+            description: product.description || "",
+            shortDescription:
+              product.short_description ||
+              product.description?.slice(0, 120) ||
+              "",
+            badge: product.badge || "",
+            course: product.course || undefined,
+            format: product.format || "",
+            stock: product.inventory || 0,
+            rating: product.rating || 4.5,
+            pickupNote: product.pickup_note || "",
+            deliveryNote: product.delivery_note || "",
+            highlights: product.highlights || [],
+            coverGradient:
+              product.cover_gradient ||
+              product.coverGradient ||
+              fallbackProduct?.coverGradient ||
+              "linear-gradient(135deg,#0f172a 0%, #1d4ed8 55%, #60a5fa 100%)",
+          };
+        });
 
         if (apiProducts.length > 0) {
           setProducts(apiProducts);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import ProductImage from "../components/ProductImage";
 import StorefrontLayout from "../components/StorefrontLayout";
 import {
   formatCurrency,
@@ -549,19 +550,26 @@ export default function CheckoutPage() {
                 {cartItems.map((item) => (
                   <div
                     key={item.product.id}
-                    className="flex items-start justify-between gap-4 rounded-[22px] bg-slate-50 p-4"
+                    className="flex items-start gap-4 rounded-[22px] bg-slate-50 p-4"
                   >
-                    <div>
-                      <p className="font-semibold text-slate-900">
-                        {item.product.title}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        Qty {item.quantity} - {item.product.category}
+                    <ProductImage
+                      product={item.product}
+                      className="h-16 w-16 flex-shrink-0 rounded-2xl"
+                      overlayClassName="bg-slate-950/5"
+                    />
+                    <div className="flex flex-1 items-start justify-between gap-4">
+                      <div>
+                        <p className="font-semibold text-slate-900">
+                          {item.product.title}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          Qty {item.quantity} - {item.product.category}
+                        </p>
+                      </div>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {formatCurrency(item.lineTotal)}
                       </p>
                     </div>
-                    <p className="text-sm font-semibold text-slate-900">
-                      {formatCurrency(item.lineTotal)}
-                    </p>
                   </div>
                 ))}
               </div>
