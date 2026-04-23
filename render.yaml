@@ -3,7 +3,7 @@ services:
     name: bookstore-backend
     env: python
     plan: free
-    buildCommand: pip install -r backend/requirements.txt && cd backend && python manage.py migrate && python manage.py createsuperuser --noinput --username admin --email admin@bookstore.com 2>/dev/null || true && python manage.py collectstatic --noinput
+    buildCommand: pip install -r backend/requirements.txt && cd backend && python manage.py migrate && bash create_superuser.sh && python manage.py collectstatic --noinput
     startCommand: cd backend && gunicorn --bind 0.0.0.0:8000 --workers 1 backend.wsgi:application
     numInstances: 1
     envVars:
@@ -15,8 +15,6 @@ services:
         value: "*"
       - key: PYTHONUNBUFFERED
         value: "1"
-      - key: DJANGO_SUPERUSER_PASSWORD
-        value: admin123
       - key: DJANGO_SECRET_KEY
         sync: false
       - key: EMAIL_HOST_USER
