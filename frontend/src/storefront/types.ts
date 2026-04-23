@@ -6,6 +6,7 @@ export interface Product {
   id: string;
   title: string;
   category: "Textbooks" | "Office Supplies" | "Tech Accessories" | "McNeese Gear";
+  imageUrl: string;
   price: number;
   description: string;
   shortDescription: string;

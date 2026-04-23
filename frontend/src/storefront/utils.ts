@@ -23,6 +23,7 @@ const TAX_RATE = 0.0875;
 const DELIVERY_FEE = 6.95;
 const FREE_DELIVERY_THRESHOLD = 100;
 const defaultWishlistPriority: WishlistPriority = "Compare";
+const retiredSeedOrderIds = new Set(["CB-20418"]);
 
 export const promoOffers: PromoOffer[] = [
   {
@@ -100,7 +101,7 @@ export function getPickupWindows(referenceDate = new Date()) {
 
 export function resolveCartItems(
   cart: CartLine[],
-  getProduct: (productId: string) => Product | undefined
+  getProduct: (productId: string) => Product | undefined,
 ) {
   return cart
     .map((line) => {
@@ -130,16 +131,14 @@ export function findPromoOffer(code?: string | null) {
 export function calculatePricing(
   cartItems: CartItem[],
   fulfillment: FulfillmentMethod,
-  promoCode?: string | null
+  promoCode?: string | null,
 ) {
   const subtotal = roundCurrency(
-    cartItems.reduce((sum, item) => sum + item.lineTotal, 0)
+    cartItems.reduce((sum, item) => sum + item.lineTotal, 0),
   );
   const promoOffer = findPromoOffer(promoCode);
   const qualifiesForPromo = Boolean(
-    promoOffer &&
-      subtotal > 0 &&
-      subtotal >= (promoOffer.minimumSubtotal ?? 0)
+    promoOffer && subtotal > 0 && subtotal >= (promoOffer.minimumSubtotal ?? 0),
   );
   const rawDiscount =
     promoOffer && qualifiesForPromo
@@ -165,7 +164,7 @@ export function calculatePricing(
     fulfillmentFee: roundCurrency(fulfillmentFee),
     total,
     freeDeliveryRemaining: roundCurrency(
-      Math.max(FREE_DELIVERY_THRESHOLD - taxableSubtotal, 0)
+      Math.max(FREE_DELIVERY_THRESHOLD - taxableSubtotal, 0),
     ),
   } satisfies PricingSummary;
 }
@@ -225,9 +224,11 @@ export function normalizeOrders(rawValue: unknown) {
     const candidate = item as Partial<OrderRecord>;
     if (
       typeof candidate.id !== "string" ||
+      retiredSeedOrderIds.has(candidate.id) ||
       typeof candidate.placedAt !== "string" ||
       typeof candidate.status !== "string" ||
-      (candidate.fulfillment !== "pickup" && candidate.fulfillment !== "delivery")
+      (candidate.fulfillment !== "pickup" &&
+        candidate.fulfillment !== "delivery")
     ) {
       return [];
     }
@@ -292,7 +293,9 @@ export function normalizeOrders(rawValue: unknown) {
                 return [];
               }
 
-              const candidateLine = line as Partial<OrderRecord["items"][number]>;
+              const candidateLine = line as Partial<
+                OrderRecord["items"][number]
+              >;
               if (
                 typeof candidateLine.productId !== "string" ||
                 typeof candidateLine.title !== "string" ||
@@ -308,8 +311,7 @@ export function normalizeOrders(rawValue: unknown) {
                   title: candidateLine.title,
                   quantity: candidateLine.quantity,
                   unitPrice: candidateLine.unitPrice,
-                  category:
-                    candidateLine.category ?? "Textbooks",
+                  category: candidateLine.category ?? "Textbooks",
                 },
               ];
             })
@@ -351,7 +353,10 @@ export function formatShortDate(date: string) {
   }).format(new Date(date));
 }
 
-export function getPaymentMethodLabel(paymentMethod: PaymentMethod, digits: string) {
+export function getPaymentMethodLabel(
+  paymentMethod: PaymentMethod,
+  digits: string,
+) {
   if (paymentMethod === "card") {
     const lastFour = digits.slice(-4) || "4242";
     return `Visa ending in ${lastFour}`;

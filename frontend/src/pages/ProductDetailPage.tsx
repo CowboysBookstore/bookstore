@@ -1,4 +1,5 @@
 import { Link, useParams } from "react-router-dom";
+import ProductImage from "../components/ProductImage";
 import StorefrontLayout from "../components/StorefrontLayout";
 import { formatCurrency } from "../storefront/data";
 import { useStorefront } from "../storefront/StorefrontContext";
@@ -43,25 +44,29 @@ export default function ProductDetailPage() {
   return (
     <StorefrontLayout>
       <section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-        <div
-          className="animate-rise relative overflow-hidden rounded-[36px] p-8 text-white shadow-xl"
-          style={{ background: product.coverGradient }}
+        <ProductImage
+          product={product}
+          className="animate-rise min-h-[460px] rounded-[36px] p-8 text-white shadow-xl"
+          overlayClassName="bg-gradient-to-b from-slate-950/5 via-slate-950/20 to-slate-950/80"
+          loading="eager"
         >
-          <span className="rounded-full bg-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em]">
-            {product.badge}
-          </span>
-          <div className="mt-20 max-w-md">
-            <p className="text-sm uppercase tracking-[0.22em] text-white/70">
-              {product.category}
-            </p>
-            <h1 className="mt-4 text-4xl font-semibold leading-tight">
-              {product.title}
-            </h1>
-            <p className="mt-5 text-base leading-7 text-white/90">
-              {product.shortDescription}
-            </p>
+          <div className="flex h-full flex-col justify-between">
+            <span className="w-fit rounded-full bg-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em]">
+              {product.badge}
+            </span>
+            <div className="max-w-md">
+              <p className="text-sm uppercase tracking-[0.22em] text-white/70">
+                {product.category}
+              </p>
+              <h1 className="mt-4 text-4xl font-semibold leading-tight">
+                {product.title}
+              </h1>
+              <p className="mt-5 text-base leading-7 text-white/90">
+                {product.shortDescription}
+              </p>
+            </div>
           </div>
-        </div>
+        </ProductImage>
 
         <div className="animate-rise-delay rounded-[36px] border border-slate-200 bg-white p-8 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -170,16 +175,27 @@ export default function ProductDetailPage() {
             <Link
               key={item.id}
               to={`/products/${item.id}`}
-              className="rounded-[24px] border border-slate-200 p-5 transition hover:-translate-y-1 hover:shadow-md"
+              className="overflow-hidden rounded-[24px] border border-slate-200 transition hover:-translate-y-1 hover:shadow-md"
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                {item.category}
-              </p>
-              <h3 className="mt-3 text-xl font-semibold text-slate-900">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{item.shortDescription}</p>
-              <p className="mt-4 text-sm font-semibold text-mcneeseBlue">
-                {formatCurrency(item.price)}
-              </p>
+              <ProductImage
+                product={item}
+                className="h-40"
+                overlayClassName="bg-gradient-to-t from-slate-950/20 via-transparent to-white/10"
+              />
+              <div className="p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  {item.category}
+                </p>
+                <h3 className="mt-3 text-xl font-semibold text-slate-900">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {item.shortDescription}
+                </p>
+                <p className="mt-4 text-sm font-semibold text-mcneeseBlue">
+                  {formatCurrency(item.price)}
+                </p>
+              </div>
             </Link>
           ))}
         </div>

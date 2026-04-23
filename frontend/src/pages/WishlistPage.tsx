@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import ProductImage from "../components/ProductImage";
 import StorefrontLayout from "../components/StorefrontLayout";
 import { formatCurrency, formatShortDate } from "../storefront/data";
 import { useStorefront } from "../storefront/StorefrontContext";
@@ -130,15 +131,11 @@ export default function WishlistPage() {
               className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm"
             >
               <div className="grid gap-6 lg:grid-cols-[220px_1fr_auto] lg:items-center">
-                <div
-                  className="h-40 rounded-[24px] p-5 text-white"
-                  style={{ background: product.coverGradient }}
-                >
-                  <p className="text-xs uppercase tracking-[0.18em] text-white/70">
-                    {product.category}
-                  </p>
-                  <h2 className="mt-4 text-2xl font-semibold">{product.title}</h2>
-                </div>
+                <ProductImage
+                  product={product}
+                  className="h-44 rounded-[24px]"
+                  overlayClassName="bg-gradient-to-t from-slate-950/16 to-transparent"
+                />
 
                 <div>
                   <div className="flex flex-wrap gap-2">

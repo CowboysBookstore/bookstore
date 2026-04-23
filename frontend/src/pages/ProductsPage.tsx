@@ -61,8 +61,8 @@ export default function ProductsPage() {
               Browse products
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-              Browse textbooks, office supplies, tech accessories, and McNeese gear.
-              Use the search box and sort controls to narrow results.
+              Browse textbooks, office supplies, tech accessories, and McNeese
+              gear. Use the search box and sort controls to narrow results.
             </p>
           </div>
 
@@ -74,7 +74,7 @@ export default function ProductsPage() {
                   type="text"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Try calculus, planner, hoodie..."
+                  placeholder="Try nursing, notebook, charger..."
                   className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                 />
               </label>
@@ -111,7 +111,7 @@ export default function ProductsPage() {
             </button>
           ))}
           <p className="ml-auto text-sm text-slate-500">
-            {filteredProducts.length} result{filteredProducts.length === 1 ? "" : "s"}
+            Use search and category filters to narrow the catalog.
           </p>
         </div>
       </section>
@@ -124,7 +124,9 @@ export default function ProductsPage() {
 
       {filteredProducts.length === 0 && (
         <section className="mt-8 rounded-[28px] border border-dashed border-slate-300 bg-white px-6 py-10 text-center shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-900">No products found</h2>
+          <h2 className="text-2xl font-semibold text-slate-900">
+            No products found
+          </h2>
           <p className="mt-3 text-sm text-slate-500">
             Try a different keyword or switch the category filter back to All.
           </p>
