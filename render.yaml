@@ -3,7 +3,7 @@ services:
     name: bookstore-backend
     env: python
     plan: free
-    buildCommand: pip install -r backend/requirements.txt && cd backend && python manage.py migrate && python -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').delete(); User.objects.create_superuser('admin', 'admin@mcneese.edu', 'admin123')" || true && python manage.py collectstatic --noinput
+    buildCommand: pip install -r backend/requirements.txt && cd backend && python manage.py migrate && python -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(email='admin@mcneese.edu').delete(); User.objects.create_superuser(email='admin@mcneese.edu', password='admin123')" || true && python manage.py collectstatic --noinput
     startCommand: cd backend && gunicorn --bind 0.0.0.0:8000 --workers 1 backend.wsgi:application
     numInstances: 1
     envVars:
