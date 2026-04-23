@@ -3,18 +3,36 @@ services:
     name: bookstore-backend
     env: python
     plan: free
-    buildCommand: pip install -r backend/requirements.txt && cd backend && python manage.py migrate && python manage.py collectstatic --noinput
+    buildCommand: pip install -r backend/requirements.txt && cd backend && python manage.py migrate && python manage.py shell -c "from django.contrib.auth.models import User; User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@bookstore.com', 'admin123')" && python manage.py collectstatic --noinput
     startCommand: cd backend && gunicorn --bind 0.0.0.0:8000 --workers 1 backend.wsgi:application
     numInstances: 1
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11
+        value: "3.11"
       - key: DJANGO_DEBUG
         value: "False"
       - key: DJANGO_ALLOWED_HOSTS
         value: "*"
       - key: PYTHONUNBUFFERED
         value: "1"
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: JWT_SIGNING_KEY
+        sync: false
+      - key: JWT_ACCESS_MINUTES
+        value: "15"
+      - key: JWT_REFRESH_DAYS
+        value: "7"
+      - key: JWT_ISSUER
+        value: "cowboy-bookstore"
+      - key: JWT_AUDIENCE
+        value: "cowboy-users"
+      - key: DATABASE_URL
+        sync: false
 
   - type: web
     name: bookstore-frontend
