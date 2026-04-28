@@ -1,5 +1,5 @@
 export type FulfillmentMethod = "pickup" | "delivery";
-export type PaymentMethod = "card" | "campus-charge" | "paypal";
+export type PaymentMethod = "card" | "campus-charge";
 export type WishlistPriority = "Need soon" | "Compare" | "Later";
 
 export interface Product {

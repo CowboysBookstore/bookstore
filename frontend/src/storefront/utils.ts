@@ -363,14 +363,12 @@ export function getPaymentMethodLabel(
   }
 
   if (paymentMethod === "campus-charge") {
-    return `Campus charge account ${digits.slice(-4) || "2048"}`;
+    return `Cowboy Cash ID ending in ${digits.slice(-4) || "2048"}`;
   }
-
-  return "PayPal wallet";
 }
 
 function isPaymentMethod(value: unknown): value is PaymentMethod {
-  return value === "card" || value === "campus-charge" || value === "paypal";
+  return value === "card" || value === "campus-charge";
 }
 
 function isWishlistPriority(value: unknown): value is WishlistPriority {
