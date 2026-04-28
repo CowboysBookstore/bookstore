@@ -3,7 +3,7 @@ services:
     name: bookstore-backend
     env: python
     plan: free
-    buildCommand: pip install -r backend/requirements.txt && cd backend && python manage.py migrate && python -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(email='admin@mcneese.edu').delete(); User.objects.create_superuser(email='admin@mcneese.edu', password='admin123')" || true && python manage.py collectstatic --noinput
+    buildCommand: cd backend && bash ../build.sh
     startCommand: cd backend && gunicorn --bind 0.0.0.0:8000 --workers 1 backend.wsgi:application
     numInstances: 1
     envVars:
@@ -32,6 +32,12 @@ services:
       - key: JWT_AUDIENCE
         value: "cowboy-users"
       - key: DATABASE_URL
+        sync: false
+      - key: SUPERUSER_NAME
+        sync: false
+      - key: SUPERUSER_EMAIL
+        sync: false
+      - key: SUPERUSER_PASSWORD
         sync: false
 
   - type: web
