@@ -2,26 +2,22 @@
 # exit on error
 set -o errexit
 
-echo "[build.sh] starting $(date)"
-echo "[build.sh] python=$(python --version 2>/dev/null || true)"
-
 pip install -r requirements.txt
 
 python manage.py collectstatic --no-input
 python manage.py migrate
 
-# Option A (not required, but nice): Django's built-in createsuperuser automation.
-# This works in many setups when DJANGO_SUPERUSER_* vars are present.
-if [[ -n "${DJANGO_SUPERUSER_EMAIL:-}" && -n "${DJANGO_SUPERUSER_PASSWORD:-}" ]]; then
-	echo "[build.sh] attempting createsuperuser via DJANGO_SUPERUSER_* env vars"
-	python manage.py createsuperuser --noinput || true
-else
-	echo "[build.sh] DJANGO_SUPERUSER_* vars not set; skipping built-in createsuperuser automation"
-fi
+# Map DJANGO_* vars into our custom email-based user model inputs.
+# Note: this project does NOT have a username field; login is by email.
+DJANGO_SU_EMAIL="${DJANGO_SUPERUSER_EMAIL:-${DJANGO_SUPERUSER_NAME:-}}"
+DJANGO_SU_PASSWORD="${DJANGO_SUPERUSER_PASSWORD:-}"
 
-# Option B (authoritative for this repo): ensure the admin user via ORM for our custom User model.
-if [[ -n "${SUPERUSER_EMAIL:-}" && -n "${SUPERUSER_PASSWORD:-}" ]]; then
-	echo "[build.sh] ensuring superuser via ORM for ${SUPERUSER_EMAIL}"
+if [[ -n "${DJANGO_SU_EMAIL}" && -n "${DJANGO_SU_PASSWORD}" ]]; then
+	export SUPERUSER_EMAIL="${DJANGO_SU_EMAIL}"
+	export SUPERUSER_PASSWORD="${DJANGO_SU_PASSWORD}"
+	export SUPERUSER_FIRST_NAME="${DJANGO_SUPERUSER_FIRST_NAME:-Admin}"
+	export SUPERUSER_LAST_NAME="${DJANGO_SUPERUSER_LAST_NAME:-User}"
+
 	python manage.py shell -c "
 import os
 from django.contrib.auth import get_user_model
@@ -67,13 +63,8 @@ changed_fields.append('password')
 
 user.save(update_fields=changed_fields or None)
 
-print('Superuser ensured:', user.email, '| created=' + str(created), '| updated_fields=' + ','.join(changed_fields))
+print('Superuser ensured')
 "
 else
-	echo "[build.sh] SUPERUSER_EMAIL/SUPERUSER_PASSWORD not set; skipping ORM ensure step."
+	echo "Superuser not configured: set DJANGO_SUPERUSER_PASSWORD and (DJANGO_SUPERUSER_EMAIL or DJANGO_SUPERUSER_NAME)"
 fi
-
-# One more collectstatic is harmless and matches common Render build patterns.
-python manage.py collectstatic --no-input
-
-echo "[build.sh] finished $(date)"
