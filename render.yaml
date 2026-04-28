@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: cd backend && bash ../build.sh
-    startCommand: cd backend && gunicorn --bind 0.0.0.0:8000 --workers 1 backend.wsgi:application
+    startCommand: cd backend && gunicorn --bind 0.0.0.0:8000 --workers 1 --access-logfile - --error-logfile - backend.wsgi:application
     numInstances: 1
     envVars:
       - key: PYTHON_VERSION
