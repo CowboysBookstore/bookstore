@@ -158,7 +158,7 @@ export default function CheckoutPage() {
       paymentMethod === "campus-charge" &&
       campusChargeId.replace(/\D/g, "").length < 7
     ) {
-      setError("Enter a valid campus charge account or student ID.");
+      setError("Enter a valid student ID to bill Cowboy Cash.");
       return;
     }
 
@@ -229,7 +229,7 @@ export default function CheckoutPage() {
             <StepCard
               number="3"
               title="Pay and place"
-              description="Support card, campus charge, or wallet-style checkout UI in one place."
+              description="Support card and school ID checkout in one place."
             />
           </div>
         </div>
@@ -371,8 +371,7 @@ export default function CheckoutPage() {
                   Payment
                 </h2>
                 <p className="mt-2 text-sm text-slate-500">
-                  Card, campus charge, and wallet checkout are handled in one
-                  place.
+                  Card and school ID checkout are handled in one place.
                 </p>
               </div>
               <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
@@ -380,7 +379,7 @@ export default function CheckoutPage() {
               </span>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
               {[
                 {
                   id: "card" as const,
@@ -389,14 +388,9 @@ export default function CheckoutPage() {
                 },
                 {
                   id: "campus-charge" as const,
-                  title: "Campus charge",
-                  description: "Bill the student bookstore or campus account.",
-                },
-                {
-                  id: "paypal" as const,
-                  title: "Wallet",
+                  title: "School ID",
                   description:
-                    "Use a saved wallet for a faster express checkout.",
+                    "Bill the order to Cowboy Cash using your student ID.",
                 },
               ].map((option) => (
                 <button
@@ -483,7 +477,7 @@ export default function CheckoutPage() {
             {paymentMethod === "campus-charge" && (
               <div className="mt-6 grid gap-4">
                 <label className="block text-sm font-medium text-slate-700">
-                  Student or campus charge ID
+                  Student ID
                   <input
                     type="text"
                     value={campusChargeId}
@@ -496,17 +490,9 @@ export default function CheckoutPage() {
                   />
                 </label>
                 <div className="rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
-                  Campus charge keeps the payment step simple for students whose
-                  bookstore spend is billed through the school account.
+                  Use your student ID when this order should be billed through
+                  Cowboy Cash.
                 </div>
-              </div>
-            )}
-
-            {paymentMethod === "paypal" && (
-              <div className="mt-6 rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
-                Express wallet checkout uses the contact email on file and would
-                normally redirect out to a payment provider before returning to
-                the order confirmation screen.
               </div>
             )}
 
