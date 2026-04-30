@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import axios from "axios";
-import type { AxiosResponse } from "axios";
+import { apiClient } from "../api/client"; // Use the centralized API client
+import type { AxiosResponse } from "axios"; // Keep for type hinting if needed, but apiClient handles the instance
 import { seededOrders } from "./data";
 import type {
   CartItem,
@@ -26,10 +26,9 @@ const WISHLIST_KEY = "bookstore.wishlist";
 const ORDERS_KEY = "bookstore.orders";
 const PROMO_KEY = "bookstore.promo";
 
-// Fallback products from local JSON (catalog.json), used if API fails.
+// Fallback products from local JSON (catalog.json), used if API fails or for initial load.
 // This ensures the app can still display products even if the backend is down.
-// Using 'require' here to avoid potential circular dependency issues with data.ts
-const storefrontProducts = require("./data").storefrontProducts;
+import { storefrontProducts } from "./data"; // Use standard ES module import
 const fallbackProductsById = new Map( 
   storefrontProducts.map((product) => [product.id, product]),
 );
@@ -165,7 +164,7 @@ export function StorefrontProvider({
   useEffect(() => {
     let mounted = true;
 
-    axios // Use the centralized apiClient for consistency
+    apiClient // Use the centralized apiClient for consistency
       .get("/api/products/")
       .then((res: AxiosResponse<any[]>) => {
         if (!mounted) {
@@ -399,7 +398,7 @@ export function StorefrontProvider({
 
   const applyPromoCode = async (code: string): Promise<PromoCodeResult> => {
     try {
-      const response = await axios.post("/api/products/promocodes/validate/", {
+      const response = await apiClient.post("/api/products/promocodes/validate/", {
         code,
       });
       const promoData: PromoCodeDetails = response.data;

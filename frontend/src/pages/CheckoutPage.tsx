@@ -68,7 +68,7 @@ export default function CheckoutPage() {
 
   const pricing = getPricingSummary(fulfillment);
 
-  const handleApplyPromo = async () => { // Made async
+  const handleApplyPromo = async () => {
     const result = await applyPromoCode(promoInput); // Await the async call
     setPromoFeedback(result.message);
   };
@@ -78,7 +78,7 @@ export default function CheckoutPage() {
     setPromoFeedback("Promo code removed from checkout.");
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => { // Make this function async
     setError("");
 
     if (cartItems.length === 0) {
@@ -134,8 +134,8 @@ export default function CheckoutPage() {
       paymentMethod === "card"
         ? cardNumber.replace(/\D/g, "")
         : campusChargeId.replace(/\D/g, "");
-
-    const order = placeOrder({
+    
+    const order = await placeOrder({ // Await the placeOrder call
       fulfillment,
       pickupSlot: fulfillment === "pickup" ? pickupSlot : undefined,
       deliveryAddress:
@@ -151,8 +151,8 @@ export default function CheckoutPage() {
       },
       paymentMethod,
       paymentLabel: getPaymentMethodLabel(paymentMethod, paymentDigits),
-      promoCode: appliedPromoCode ?? undefined,
-      discount: pricing.discount,
+      // promoCode and discount are now handled directly by StorefrontContext's placeOrder
+      // and sent to the backend based on appliedPromoCode and pricing.discount
     });
 
     if (!order) {
