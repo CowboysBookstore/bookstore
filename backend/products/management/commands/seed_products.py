@@ -1,59 +1,41 @@
-from __future__ import annotations
-
-import json
-from pathlib import Path
-
-from django.core.management.base import BaseCommand, CommandError
-
+from django.core.management.base import BaseCommand
 from products.models import Product
 
-
-CATALOG_PATH = (
-    Path(__file__).resolve().parents[4]
-    / "frontend"
-    / "src"
-    / "storefront"
-    / "catalog.json"
-)
-
-
 class Command(BaseCommand):
-    help = "Seed the shared bookstore catalog into the database"
+    help = "Seed the database with initial placeholder products."
 
     def handle(self, *args, **options):
-        if not CATALOG_PATH.exists():
-            raise CommandError(f"Catalog file not found: {CATALOG_PATH}")
+        products = [
+            {
+                "title": "Introduction to Algorithms",
+                "author": "Thomas H. Cormen",
+                "description": "A comprehensive update of the leading algorithms text.",
+                "price": "89.99",
+                "image_url": "https://images.unsplash.com/photo-1512820200504-0f227dc5b4dc?auto=format&fit=crop&w=500&q=60",
+                "category": "Computer Science",
+                "stock": 50,
+            },
+            {
+                "title": "University Physics",
+                "author": "Hugh D. Young",
+                "description": "Broad, rigorous overview of physics principles.",
+                "price": "119.50",
+                "image_url": "https://images.unsplash.com/photo-1633613286848-e6f43bbafb84?auto=format&fit=crop&w=500&q=60",
+                "category": "Physics",
+                "stock": 30,
+            },
+            {
+                "title": "Cowboy Bookstore Hoodie",
+                "author": "McNeese Apparel",
+                "description": "Premium comfort hoodie with the McNeese State University logo.",
+                "price": "45.00",
+                "image_url": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=500&q=60",
+                "category": "Apparel",
+                "stock": 100,
+            },
+        ]
 
-        catalog_products = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
-        created = 0
+        for p_data in products:
+            Product.objects.get_or_create(title=p_data["title"], defaults=p_data)
 
-        for product in catalog_products:
-            defaults = {
-                "title": product.get("title"),
-                "category": product.get("category", "Textbooks"),
-                "short_description": product.get("short_description", ""),
-                "description": product.get("description", ""),
-                "badge": product.get("badge", ""),
-                "course": product.get("course", ""),
-                "format": product.get("format", ""),
-                "price": product.get("price"),
-                "inventory": product.get("inventory", 0),
-                "sku": product.get("sku", ""),
-                "image_url": product.get("image_url", ""),
-                "rating": product.get("rating", 4.5),
-                "pickup_note": product.get("pickup_note", ""),
-                "delivery_note": product.get("delivery_note", ""),
-                "highlights": product.get("highlights", []),
-                "cover_gradient": product.get("cover_gradient", ""),
-            }
-            _, was_created = Product.objects.update_or_create(
-                slug=product.get("slug"), defaults=defaults
-            )
-            if was_created:
-                created += 1
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Seeded {len(catalog_products)} catalog products ({created} newly created)"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS("Successfully seeded products!"))

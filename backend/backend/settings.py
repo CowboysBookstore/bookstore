@@ -227,6 +227,17 @@ UNFOLD = {
                     },
                 ],
             },
+            {
+                "title": "Store",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Products",
+                        "icon": "inventory_2",
+                        "link": "/admin/products/product/",
+                    },
+                ],
+            },
         ],
     },
 }
