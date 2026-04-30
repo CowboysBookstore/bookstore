@@ -113,6 +113,7 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true").lower() == "true"
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@mcneese.edu")
+EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "10"))
 
 # Stripe keys (test or live). Set STRIPE_SECRET_KEY in your .env to enable PaymentIntent creation.
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")

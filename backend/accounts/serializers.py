@@ -5,12 +5,15 @@ from datetime import timedelta
 from django.contrib.auth import authenticate, get_user_model
 from django.utils import timezone
 from rest_framework import serializers
+import logging
 
 from .emails import send_activation_email, send_password_reset_email
 from .models import ActivationCode, PasswordResetCode
 from .utils import generate_jwt_pair, validate_mcneese_email
 
 User = get_user_model()
+
+logger = logging.getLogger(__name__)
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -35,7 +38,11 @@ class RegisterSerializer(serializers.Serializer):
         user.set_password(password)
         user.save()
         activation = ActivationCode.create_for_user(user, lifetime=timedelta(hours=24))
-        send_activation_email(user.email, activation.code)
+        try:
+            send_activation_email(user.email, activation.code)
+        except Exception:
+            # Email delivery can fail in production (SMTP blocked/timeouts). Don't fail registration.
+            logger.exception("Activation email failed to send")
         return user
 
 
@@ -106,7 +113,10 @@ class ForgotPasswordSerializer(serializers.Serializer):
         reset = PasswordResetCode.create_for_user(
             self.user, lifetime=timedelta(hours=24)
         )
-        send_password_reset_email(self.user.email, reset.code)
+        try:
+            send_password_reset_email(self.user.email, reset.code)
+        except Exception:
+            logger.exception("Password reset email failed to send")
         return {"detail": "Password reset code sent."}
 
 
