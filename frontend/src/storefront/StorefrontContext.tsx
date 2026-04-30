@@ -174,29 +174,20 @@ export function StorefrontProvider({
           return {
             id: productId,
             title: product.title,
-            category: (product.category as Product["category"]) || "Textbooks", // Ensure category is valid
-            imageUrl: // Prioritize API image_url, then fallback
-              product.image_url || // Prefer API image_url
-              fallbackProduct?.imageUrl ||
-              "",
+            category: (product.category as Product["category"]) || "Textbooks",
+            imageUrl: product.image_url || fallbackProduct?.imageUrl || "",
             price: Number(product.price),
             description: product.description || "",
-            shortDescription:
-              product.short_description ||
-              product.description?.slice(0, 120) ||
-              "",
+            shortDescription: product.short_description || product.description?.slice(0, 120) || "",
             badge: product.badge || "",
             course: product.course || undefined,
             format: product.format || "",
-            stock: product.inventory || 0,
+            stock: product.stock || 0,
             rating: product.rating || 4.5,
             pickupNote: product.pickup_note || "",
-            deliveryNote: product.delivery_note || "", // Ensure these fields are always strings
-            highlights: product.highlights || [], // Ensure highlights is an array
-            coverGradient: // Use API cover_gradient or fallback
-              product.coverGradient ||
-              fallbackProduct?.coverGradient ||
-              "linear-gradient(135deg,#0f172a 0%, #1d4ed8 55%, #60a5fa 100%)",
+            deliveryNote: product.delivery_note || "",
+            highlights: product.highlights || [],
+            coverGradient: product.cover_gradient || fallbackProduct?.coverGradient || "linear-gradient(135deg,#0f172a 0%, #1d4ed8 55%, #60a5fa 100%)",
           };
         });
 
