@@ -47,39 +47,16 @@ services:
     staticPublishPath: frontend/dist
     routes:
       # Serve static assets as-is
-      - type: rewrite
-        source: /assets/*
-        destination: /assets/*
-      - type: rewrite
-        source: /*.js
-        destination: /*.js
-      - type: rewrite
-        source: /*.css
-        destination: /*.css
-      - type: rewrite
-        source: /*.map
-        destination: /*.map
-      - type: rewrite
-        source: /*.png
-        destination: /*.png
-      - type: rewrite
-        source: /*.jpg
-        destination: /*.jpg
-      - type: rewrite
-        source: /*.jpeg
-        destination: /*.jpeg
-      - type: rewrite
-        source: /*.svg
-        destination: /*.svg
-      - type: rewrite
-        source: /*.ico
-        destination: /*.ico
-      - type: rewrite
-        source: /*.txt
-        destination: /*.txt
-      - type: rewrite
-        source: /*.json
-        destination: /*.json
+      - type: static
+        source: /assets
+        destination: /assets
+      - type: static
+        source: /index.html
+        destination: /index.html
+      - type: static
+        source: /favicon.ico
+        destination: /favicon.ico
+      # Catch-all: route all other paths to index.html for React Router
       - type: rewrite
         source: /*
         destination: /index.html
