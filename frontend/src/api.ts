@@ -1,5 +1,15 @@
+declare global {
+  interface Window {
+    __APP_CONFIG__?: {
+      API_BASE_URL?: string;
+    };
+  }
+}
+
 const RAW_API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  window.__APP_CONFIG__?.API_BASE_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://localhost:8000";
 
 // Ensure we don't end up with double slashes when concatenating.
 const API_BASE_URL = RAW_API_BASE_URL.replace(/\/+$/, "");
