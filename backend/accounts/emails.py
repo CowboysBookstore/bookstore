@@ -61,44 +61,53 @@ def _base_html(title: str, body_content: str) -> str:
 </html>"""
 
 
-def _send_via_resend(
+def _send_via_sendgrid(
     *,
     subject: str,
     plain: str,
     html: str,
     to_emails: Iterable[str],
 ) -> None:
-    """Send an email using Resend's HTTP API.
-
-    This avoids SMTP (often blocked on hosts like Render), while keeping
-    the rest of the app unchanged.
+    """Send an email using SendGrid's HTTP API (avoids blocked SMTP on Render).
 
     Enable by setting:
-      - RESEND_API_KEY
+      - SENDGRID_API_KEY
 
     Optionally set:
-      - RESEND_FROM_EMAIL (defaults to DEFAULT_FROM_EMAIL)
-      - RESEND_TIMEOUT_SECONDS (defaults to 10)
+      - SENDGRID_FROM_EMAIL (defaults to DEFAULT_FROM_EMAIL)
+      - SENDGRID_TIMEOUT_SECONDS (defaults to 10)
+
+    Notes:
+      - SendGrid may require verifying the sender (Single Sender Verification)
+        or a domain, depending on your account.
     """
 
-    api_key = os.getenv("RESEND_API_KEY", "").strip()
+    api_key = os.getenv("SENDGRID_API_KEY", "").strip()
     if not api_key:
-        raise RuntimeError("RESEND_API_KEY is not set")
+        raise RuntimeError("SENDGRID_API_KEY is not set")
 
-    from_email = os.getenv("RESEND_FROM_EMAIL", "").strip() or settings.DEFAULT_FROM_EMAIL
-    timeout = int(os.getenv("RESEND_TIMEOUT_SECONDS", "10"))
+    from_email = (
+        os.getenv("SENDGRID_FROM_EMAIL", "").strip() or settings.DEFAULT_FROM_EMAIL
+    )
+    timeout = int(os.getenv("SENDGRID_TIMEOUT_SECONDS", "10"))
 
-    # Resend expects: to: ["user@example.com"], from: "Name <email@domain>"
+    # SendGrid v3 Mail Send
     payload = {
-        "from": from_email,
-        "to": list(to_emails),
-        "subject": subject,
-        "text": plain,
-        "html": html,
+        "personalizations": [
+            {
+                "to": [{"email": e} for e in to_emails],
+                "subject": subject,
+            }
+        ],
+        "from": {"email": from_email},
+        "content": [
+            {"type": "text/plain", "value": plain},
+            {"type": "text/html", "value": html},
+        ],
     }
 
     resp = requests.post(
-        "https://api.resend.com/emails",
+        "https://api.sendgrid.com/v3/mail/send",
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
@@ -108,15 +117,15 @@ def _send_via_resend(
     )
     if resp.status_code >= 400:
         raise RuntimeError(
-            f"Resend API error {resp.status_code}: {resp.text[:500]}"
+            f"SendGrid API error {resp.status_code}: {resp.text[:500]}"
         )
 
 
 def _send_email(subject: str, plain: str, html: str, to: list[str]) -> None:
-    """Send via Resend if configured, otherwise fall back to Django email backend."""
+    """Send via SendGrid if configured, otherwise fall back to Django email backend."""
 
-    if os.getenv("RESEND_API_KEY", "").strip():
-        _send_via_resend(subject=subject, plain=plain, html=html, to_emails=to)
+    if os.getenv("SENDGRID_API_KEY", "").strip():
+        _send_via_sendgrid(subject=subject, plain=plain, html=html, to_emails=to)
         return
 
     send_mail(
