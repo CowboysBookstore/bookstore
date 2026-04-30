@@ -55,3 +55,8 @@ export const storefrontProducts: Product[] = catalogRecords.map((product) => ({
 }));
 
 export const seededOrders: OrderRecord[] = [];
+
+export const promoOffers = [
+  { code: "WELCOME5", label: "$5 off your first order", description: "Welcome discount", type: "fixed", value: 5, minimumSubtotal: 25 },
+  { code: "COWBOY10", label: "10% off", description: "Course-ready carts", type: "percent", value: 10, minimumSubtotal: 75 },
+];

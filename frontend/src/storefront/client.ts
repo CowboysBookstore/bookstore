@@ -20,3 +20,32 @@ apiClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+/**
+ * A consolidated API object for making requests to the backend.
+ * It uses the configured `apiClient` (axios instance).
+ */
+export const api = {
+  // Auth
+  register: (body: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    password: string;
+  }) => apiClient.post("/api/auth/register/", body).then((res) => res.data),
+
+  verify: (body: { email: string; code: string }) =>
+    apiClient.post("/api/auth/verify/", body).then((res) => res.data),
+
+  login: (body: { email: string; password: string }) =>
+    apiClient.post<{ access: string; refresh: string }>("/api/auth/login/", body).then((res) => res.data),
+
+  forgotPassword: (body: { email: string }) =>
+    apiClient.post("/api/auth/forgot-password/", body).then((res) => res.data),
+
+  resetPassword: (body: { email: string; code: string; new_password: string }) =>
+    apiClient.post("/api/auth/reset-password/", body).then((res) => res.data),
+
+  // Products
+  listProducts: () => apiClient.get("/api/products/").then((res) => res.data),
+};

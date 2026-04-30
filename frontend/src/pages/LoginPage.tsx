@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
 import PasswordInput from "../components/PasswordInput";
-import { api } from "../api";
+import { api } from "../storefront/client";
 
 export default function LoginPage() {
   const navigate = useNavigate();

@@ -96,3 +96,12 @@ export interface OrderRecord {
   promoCode?: string;
   items: OrderLine[];
 }
+
+export interface PromoCodeDetails {
+  code: string;
+  label?: string;
+  description?: string;
+  discount_type: "percentage" | "fixed";
+  discount_value: number;
+  minimum_cart_total?: number;
+}

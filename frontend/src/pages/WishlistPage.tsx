@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import ProductImage from "../components/ProductImage";
 import StorefrontLayout from "../components/StorefrontLayout";
-import { formatCurrency, formatShortDate } from "../storefront/data";
+import { formatCurrency, formatShortDate } from "../storefront/utils";
 import { useStorefront } from "../storefront/StorefrontContext";
 import type { WishlistPriority } from "../storefront/types";
 

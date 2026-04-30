@@ -5,7 +5,7 @@ import {
   formatCurrency,
   formatOrderDate,
   formatOrderDateTime,
-} from "../storefront/data";
+} from "../storefront/utils";
 import { useStorefront } from "../storefront/StorefrontContext";
 
 export default function OrdersPage() {

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ProductImage from "../components/ProductImage";
 import StorefrontLayout from "../components/StorefrontLayout";
-import { formatCurrency, promoOffers } from "../storefront/data";
+import { formatCurrency } from "../storefront/utils";
 import { useStorefront } from "../storefront/StorefrontContext";
 
 function SummaryCard({
@@ -29,7 +29,7 @@ export default function CartPage() {
   const {
     cartItems,
     wishlist,
-    wishlistCount,
+    wishlistItems,
     appliedPromoCode,
     applyPromoCode,
     clearPromoCode,
@@ -38,6 +38,7 @@ export default function CartPage() {
     moveCartToWishlist,
     getPricingSummary,
     clearCart,
+    wishlistCount,
   } = useStorefront();
   const [promoInput, setPromoInput] = useState(appliedPromoCode ?? "");
   const [promoFeedback, setPromoFeedback] = useState("");
@@ -50,10 +51,10 @@ export default function CartPage() {
   const deliverySummary = getPricingSummary("delivery");
   const lowStockCount = cartItems.filter(
     (item) => item.product.stock - item.quantity <= 3,
-  ).length;
+  ).length; 
 
-  const handleApplyPromo = () => {
-    const result = applyPromoCode(promoInput);
+  const handleApplyPromo = async () => {
+    const result = await applyPromoCode(promoInput);
     setPromoFeedback(result.message);
   };
 
@@ -325,19 +326,6 @@ export default function CartPage() {
                   </button>
                 </div>
               </label>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                {promoOffers.map((offer) => (
-                  <button
-                    key={offer.code}
-                    type="button"
-                    onClick={() => setPromoInput(offer.code)}
-                    className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition hover:bg-white"
-                  >
-                    {offer.code}
-                  </button>
-                ))}
-              </div>
 
               {(promoFeedback || appliedPromoCode) && (
                 <div className="mt-4 rounded-2xl bg-white p-4 text-sm leading-6 text-slate-600">

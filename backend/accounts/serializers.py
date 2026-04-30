@@ -17,15 +17,6 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-def _should_expose_auth_codes() -> bool:
-    """Helper to check if auth codes should be exposed for demo/testing."""
-    return os.getenv("EXPOSE_AUTH_CODES", "").strip().lower() in (
-        "1",
-        "true",
-        "yes",
-        "on",
-    )
-
 class RegisterSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
@@ -48,13 +39,20 @@ class RegisterSerializer(serializers.Serializer):
         user.set_password(password)
         user.save()
         activation = ActivationCode.create_for_user(user, lifetime=timedelta(hours=24))
+        expose_codes = os.getenv("EXPOSE_AUTH_CODES", "").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
         try:
             send_activation_email(user.email, activation.code)
         except Exception:
+            # Email delivery can fail in production (SMTP blocked/timeouts). Don't fail registration.
             logger.exception("Activation email failed to send")
-            
-        if _should_expose_auth_codes():
-            self._activation_code = activation.code
+            # Emergency fallback for demos/launches: expose the code in the response when enabled.
+            if expose_codes:
+                self._activation_code = activation.code
         return user
 
     def to_representation(self, instance):
@@ -132,14 +130,19 @@ class ForgotPasswordSerializer(serializers.Serializer):
         reset = PasswordResetCode.create_for_user(
             self.user, lifetime=timedelta(hours=24)
         )
+        expose_codes = os.getenv("EXPOSE_AUTH_CODES", "").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
         try:
             send_password_reset_email(self.user.email, reset.code)
         except Exception:
             logger.exception("Password reset email failed to send")
-        response_data = {"detail": "Password reset code sent."}
-        if _should_expose_auth_codes():
-            response_data["reset_code"] = reset.code
-        return response_data
+            if expose_codes:
+                return {"detail": "Password reset code sent.", "reset_code": reset.code}
+        return {"detail": "Password reset code sent."}
 
 
 class ResetPasswordSerializer(serializers.Serializer):

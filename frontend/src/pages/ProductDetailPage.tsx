@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import ProductImage from "../components/ProductImage";
 import StorefrontLayout from "../components/StorefrontLayout";
-import { formatCurrency } from "../storefront/data";
+import { formatCurrency } from "../storefront/utils";
 import { useStorefront } from "../storefront/StorefrontContext";
 
 export default function ProductDetailPage() {

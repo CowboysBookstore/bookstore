@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import ProductImage from "./ProductImage";
-import { formatCurrency } from "../storefront/data";
+import { formatCurrency } from "../storefront/utils";
 import { useStorefront } from "../storefront/StorefrontContext";
 import type { Product } from "../storefront/types";
 

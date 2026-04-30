@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
-import { api } from "../api";
+import { api } from "../storefront/client";
 
 export default function VerifyPage() {
   const navigate = useNavigate();

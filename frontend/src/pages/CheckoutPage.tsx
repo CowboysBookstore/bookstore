@@ -2,9 +2,14 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ProductImage from "../components/ProductImage";
 import StorefrontLayout from "../components/StorefrontLayout";
-import { formatCurrency, getPickupWindows, formatCardNumber, formatExpiration, getPaymentMethodLabel } from "../storefront/utils";
+import {
+  formatCurrency,
+  getPickupWindows,
+} from "../storefront/utils";
+import { promoOffers } from "../storefront/data";
 import { useStorefront } from "../storefront/StorefrontContext";
 import type { FulfillmentMethod, PaymentMethod } from "../storefront/types";
+import { getPaymentMethodLabel } from "../storefront/utils";
 
 function StepCard({
   number,
@@ -26,12 +31,37 @@ function StepCard({
   );
 }
 
+function formatCardNumber(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 16);
+  return digits.match(/.{1,4}/g)?.join(" ") ?? digits;
+}
+
+function formatExpiration(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+  if (digits.length <= 2) {
+    return digits;
+  }
+
+  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+}
+
+function formatPhoneNumber(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+  if (digits.length < 4) {
+    return digits;
+  }
+  if (digits.length < 7) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  }
+
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const {
     cartItems,
     appliedPromoCode,
-    appliedPromoDetails, // New: get applied promo details
     applyPromoCode,
     clearPromoCode,
     getPricingSummary,
@@ -40,17 +70,17 @@ export default function CheckoutPage() {
   const pickupWindows = getPickupWindows();
   const [fulfillment, setFulfillment] = useState<FulfillmentMethod>("pickup");
   const [pickupSlot, setPickupSlot] = useState(pickupWindows[0] ?? "");
-  const [deliveryStreet, setDeliveryStreet] = useState("");
-  const [deliveryCity, setDeliveryCity] = useState("");
-  const [deliveryState, setDeliveryState] = useState("");
-  const [deliveryZip, setDeliveryZip] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
   const [deliveryInstructions, setDeliveryInstructions] = useState("");
+  const [fullName, setFullName] = useState("Cowboy Student");
+  const [email, setEmail] = useState("student@mcneese.edu");
+  const [phone, setPhone] = useState("(337) 555-0144");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiration, setExpiration] = useState("");
-  const [securityCode, setSecurityCode] = useState("");
-  const [billingZip, setBillingZip] = useState("");
-  const [campusChargeId, setCampusChargeId] = useState("");
+  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
+  const [expiration, setExpiration] = useState("08/28");
+  const [securityCode, setSecurityCode] = useState("123");
+  const [billingZip, setBillingZip] = useState("70609");
+  const [campusChargeId, setCampusChargeId] = useState("0002048");
   const [promoInput, setPromoInput] = useState(appliedPromoCode ?? "");
   const [promoFeedback, setPromoFeedback] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -69,7 +99,7 @@ export default function CheckoutPage() {
   const pricing = getPricingSummary(fulfillment);
 
   const handleApplyPromo = async () => {
-    const result = await applyPromoCode(promoInput); // Await the async call
+    const result = await applyPromoCode(promoInput);
     setPromoFeedback(result.message);
   };
 
@@ -78,7 +108,7 @@ export default function CheckoutPage() {
     setPromoFeedback("Promo code removed from checkout.");
   };
 
-  const handlePlaceOrder = async () => { // Make this function async
+  const handlePlaceOrder = async () => {
     setError("");
 
     if (cartItems.length === 0) {
@@ -86,16 +116,23 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (fulfillment === "delivery") {
-      if (
-        !deliveryStreet.trim() ||
-        !deliveryCity.trim() ||
-        !deliveryState.trim() ||
-        !deliveryZip.trim()
-      ) {
-        setError("Enter a complete delivery address to continue.");
-        return;
-      }
+    if (fulfillment === "delivery" && deliveryAddress.trim() === "") {
+      setError("Enter a delivery address to continue.");
+      return;
+    }
+
+    if (
+      fullName.trim() === "" ||
+      email.trim() === "" ||
+      phone.replace(/\D/g, "").length !== 10
+    ) {
+      setError("Complete the contact details before placing the order.");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Enter a valid email address before placing the order.");
+      return;
     }
 
     if (paymentMethod === "card") {
@@ -117,12 +154,12 @@ export default function CheckoutPage() {
       }
     }
 
-    if (paymentMethod === "campus-charge") {
-      const idDigits = campusChargeId.replace(/\D/g, "");
-      if (idDigits.length !== 9 || !idDigits.startsWith("000")) {
-        setError("Student ID must be exactly 9 digits and start with 000.");
-        return;
-      }
+    if (
+      paymentMethod === "campus-charge" &&
+      campusChargeId.replace(/\D/g, "").length < 7
+    ) {
+      setError("Enter a valid student ID to bill Cowboy Cash.");
+      return;
     }
 
     if (!agreedToTerms) {
@@ -134,25 +171,22 @@ export default function CheckoutPage() {
       paymentMethod === "card"
         ? cardNumber.replace(/\D/g, "")
         : campusChargeId.replace(/\D/g, "");
-    
-    const order = await placeOrder({ // Await the placeOrder call
+
+    const order = await placeOrder({
       fulfillment,
       pickupSlot: fulfillment === "pickup" ? pickupSlot : undefined,
-      deliveryAddress:
-        fulfillment === "delivery"
-          ? `${deliveryStreet.trim()}, ${deliveryCity.trim()}, ${deliveryState.trim()} ${deliveryZip.trim()}`
-          : undefined,
+      deliveryAddress: fulfillment === "delivery" ? deliveryAddress : undefined,
       deliveryInstructions:
         fulfillment === "delivery" ? deliveryInstructions : undefined,
       customer: {
-        fullName: "", // Placeholder: This should be populated from the authenticated user's profile.
-        email: "", // Placeholder: This should be populated from the authenticated user's profile.
-        phone: "", // Placeholder: This should be populated from the authenticated user's profile.
+        fullName,
+        email,
+        phone,
       },
       paymentMethod,
       paymentLabel: getPaymentMethodLabel(paymentMethod, paymentDigits),
-      // promoCode and discount are now handled directly by StorefrontContext's placeOrder
-      // and sent to the backend based on appliedPromoCode and pricing.discount
+      promoCode: appliedPromoCode ?? undefined,
+      discount: pricing.discount,
     });
 
     if (!order) {
@@ -181,7 +215,7 @@ export default function CheckoutPage() {
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <StepCard
               number="1"
               title="Choose fulfillment"
@@ -189,6 +223,11 @@ export default function CheckoutPage() {
             />
             <StepCard
               number="2"
+              title="Confirm student details"
+              description="Collect the contact information needed for pickup updates or shipping notices."
+            />
+            <StepCard
+              number="3"
               title="Pay and place"
               description="Support card and school ID checkout in one place."
             />
@@ -263,56 +302,15 @@ export default function CheckoutPage() {
             ) : (
               <div className="mt-6 grid gap-4">
                 <label className="block text-sm font-medium text-slate-700">
-                  Street address
-                  <input
-                    type="text"
-                    value={deliveryStreet}
-                    onChange={(event) => setDeliveryStreet(event.target.value)}
-                    placeholder="123 Main St, Apt 4B"
+                  Delivery address
+                  <textarea
+                    value={deliveryAddress}
+                    onChange={(event) => setDeliveryAddress(event.target.value)}
+                    rows={4}
+                    placeholder="Residence hall or off-campus address"
                     className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                   />
                 </label>
-                <div className="grid gap-4 md:grid-cols-4">
-                  <label className="block text-sm font-medium text-slate-700 md:col-span-2">
-                    City
-                    <input
-                      type="text"
-                      value={deliveryCity}
-                      onChange={(event) => setDeliveryCity(event.target.value)}
-                      placeholder="Lake Charles"
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                    />
-                  </label>
-                  <label className="block text-sm font-medium text-slate-700 md:col-span-1">
-                    State
-                    <input
-                      type="text"
-                      value={deliveryState}
-                      onChange={(event) =>
-                        setDeliveryState(
-                          event.target.value.toUpperCase().slice(0, 2),
-                        )
-                      }
-                      placeholder="LA"
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                    />
-                  </label>
-                  <label className="block text-sm font-medium text-slate-700 md:col-span-1">
-                    ZIP code
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={deliveryZip}
-                      onChange={(event) =>
-                        setDeliveryZip(
-                          event.target.value.replace(/\D/g, "").slice(0, 5),
-                        )
-                      }
-                      placeholder="70609"
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                    />
-                  </label>
-                </div>
                 <label className="block text-sm font-medium text-slate-700">
                   Delivery instructions
                   <textarea
@@ -327,6 +325,43 @@ export default function CheckoutPage() {
                 </label>
               </div>
             )}
+          </section>
+
+          <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
+            <h2 className="text-2xl font-semibold text-slate-900">
+              Contact information
+            </h2>
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <label className="block text-sm font-medium text-slate-700">
+                Full name
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(event) => setFullName(event.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                />
+              </label>
+              <label className="block text-sm font-medium text-slate-700">
+                Email
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                />
+              </label>
+              <label className="block text-sm font-medium text-slate-700">
+                Phone
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(event) =>
+                    setPhone(formatPhoneNumber(event.target.value))
+                  }
+                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
+                />
+              </label>
+            </div>
           </section>
 
           <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
@@ -384,8 +419,6 @@ export default function CheckoutPage() {
                   Card number
                   <input
                     type="text"
-                    inputMode="numeric"
-                    placeholder="0000 0000 0000 0000"
                     value={cardNumber}
                     onChange={(event) =>
                       setCardNumber(formatCardNumber(event.target.value))
@@ -399,8 +432,6 @@ export default function CheckoutPage() {
                     Expiration
                     <input
                       type="text"
-                      inputMode="numeric"
-                      placeholder="MM/YY"
                       value={expiration}
                       onChange={(event) =>
                         setExpiration(formatExpiration(event.target.value))
@@ -412,8 +443,6 @@ export default function CheckoutPage() {
                     Security code
                     <input
                       type="text"
-                      inputMode="numeric"
-                      placeholder="CVC"
                       value={securityCode}
                       onChange={(event) =>
                         setSecurityCode(
@@ -427,8 +456,6 @@ export default function CheckoutPage() {
                     Billing ZIP
                     <input
                       type="text"
-                      inputMode="numeric"
-                      placeholder="ZIP"
                       value={billingZip}
                       onChange={(event) =>
                         setBillingZip(
@@ -453,12 +480,10 @@ export default function CheckoutPage() {
                   Student ID
                   <input
                     type="text"
-                    inputMode="numeric"
-                    placeholder="000123456"
                     value={campusChargeId}
                     onChange={(event) =>
                       setCampusChargeId(
-                        event.target.value.replace(/\D/g, "").slice(0, 9),
+                        event.target.value.replace(/\D/g, "").slice(0, 10),
                       )
                     }
                     className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
@@ -586,7 +611,7 @@ export default function CheckoutPage() {
                       className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm uppercase transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
                     />
                     <button
-                      type="button" // This button will now trigger the API call
+                      type="button"
                       onClick={handleApplyPromo}
                       className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
                     >
@@ -594,33 +619,29 @@ export default function CheckoutPage() {
                     </button>
                   </div>
                 </label>
-                {/* Removed hardcoded promoOffers display */}
-                {(promoFeedback || appliedPromoCode || appliedPromoDetails) && ( // Check appliedPromoDetails too
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {promoOffers.map((offer) => (
+                    <button
+                      key={offer.code}
+                      type="button"
+                      onClick={() => setPromoInput(offer.code)}
+                      className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition hover:bg-white"
+                    >
+                      {offer.code}
+                    </button>
+                  ))}
+                </div>
+                {(promoFeedback || appliedPromoCode) && (
                   <div className="mt-4 rounded-2xl bg-white p-4 text-sm leading-6 text-slate-600">
                     {promoFeedback && <p>{promoFeedback}</p>}
-                    {appliedPromoCode && appliedPromoDetails && ( // Display applied promo details
-                      <>
-                        <p>
-                          Promo code "{appliedPromoCode}" applied! You saved{" "}
-                          {appliedPromoDetails.discount_type === "percentage"
-                            ? `${appliedPromoDetails.discount_value}%`
-                            : formatCurrency(appliedPromoDetails.discount_value)}
-                          .
-                        </p>
-                        {appliedPromoDetails.minimum_cart_total && (
-                          <p className="mt-1 text-xs text-slate-500">
-                            (Minimum cart total:{" "}
-                            {formatCurrency(appliedPromoDetails.minimum_cart_total)})
-                          </p>
-                        )}
-                        <button
-                          type="button"
-                          onClick={handleClearPromo}
-                          className="mt-3 font-semibold text-mcneeseBlue transition hover:text-blue-800"
-                        >
-                          Remove {appliedPromoCode}
-                        </button>
-                      </>
+                    {appliedPromoCode && (
+                      <button
+                        type="button"
+                        onClick={handleClearPromo}
+                        className="mt-3 font-semibold text-mcneeseBlue transition hover:text-blue-800"
+                      >
+                        Remove {appliedPromoCode}
+                      </button>
                     )}
                   </div>
                 )}

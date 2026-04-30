@@ -160,3 +160,38 @@ export function calculatePricing(
         : 0,
   };
 }
+
+/**
+ * Resolve cart lines into CartItem objects using the provided product lookup.
+ */
+export function resolveCartItems(
+  cartLines: { productId: string; quantity: number }[],
+  getProduct: (id: string) => any,
+) {
+  return cartLines
+    .map((line) => {
+      const product = getProduct(line.productId);
+      if (!product) return null;
+      return {
+        product,
+        productId: line.productId,
+        quantity: line.quantity,
+        lineTotal: product.price * line.quantity,
+      } as unknown as CartItem;
+    })
+    .filter(Boolean) as CartItem[];
+}
+
+/** Normalize wishlist records from session storage */
+export function normalizeWishlist(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.map((v) => v) as any[];
+}
+
+/** Normalize seeded orders to remove any retired seed IDs (test helper) */
+export function normalizeOrders(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  // Filter out any seeded order IDs that are considered retired in this app
+  const retired = new Set<string>(["CB-20418"]);
+  return (value as any[]).filter((o) => !retired.has(o.id));
+}

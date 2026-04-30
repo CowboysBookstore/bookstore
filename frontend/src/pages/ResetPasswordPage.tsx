@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
 import PasswordInput from "../components/PasswordInput";
-import { api } from "../api";
+import { api } from "../storefront/client";
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();

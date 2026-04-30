@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { apiClient } from "../api/client"; // Use the centralized API client
+import { apiClient, api } from "./client"; // Import both apiClient and the 'api' object
 import { seededOrders } from "./data";
 import type {
   CartItem,
@@ -18,6 +18,7 @@ import {
   normalizeOrders,
   normalizeWishlist,
   resolveCartItems,
+  formatCurrency,
 } from "./utils";
 
 const CART_KEY = "bookstore.cart";
@@ -163,14 +164,11 @@ export function StorefrontProvider({
   useEffect(() => {
     let mounted = true;
 
-    apiClient // Use the centralized apiClient for consistency
-      .get("/api/products/")
-      .then((res) => {
-        if (!mounted) {
-          return;
-        }
+    api.listProducts()
+      .then((productsFromApi: any[]) => {
+        if (!mounted) return;
 
-        const apiProducts = res.data.map((product: any) => {
+        const apiProducts = productsFromApi.map((product: any) => {
           const productId = product.slug || String(product.id);
           const fallbackProduct = fallbackProductsById.get(productId);
           return {
@@ -220,7 +218,7 @@ export function StorefrontProvider({
 
   const cartItems = resolveCartItems(cart, getProduct);
   const wishlistItems = wishlist
-    .map((entry) => {
+    .map((entry: WishlistEntry) => {
       const product = getProduct(entry.productId);
       if (!product) {
         return null;
@@ -403,7 +401,7 @@ export function StorefrontProvider({
       const promoData: PromoCodeDetails = response.data;
 
       // Check if the promo code is valid for the current cart total (if minimum_cart_total is set)
-      const currentSubtotal = cartItems.reduce((sum, item) => sum + item.lineTotal, 0);
+  const currentSubtotal = cartItems.reduce((sum: number, item: CartItem) => sum + item.lineTotal, 0);
       if (promoData.minimum_cart_total && currentSubtotal < promoData.minimum_cart_total) {
         setAppliedPromoCode(null);
         setAppliedPromoDetails(null);
@@ -455,7 +453,7 @@ export function StorefrontProvider({
       tax: pricing.tax,
       fulfillmentFee: pricing.fulfillmentFee,
       total: pricing.total,
-      items: cartItems.map((item) => ({ // Send simplified cart items
+      items: cartItems.map((item: CartItem) => ({ // Send simplified cart items
         productId: item.product.id,
         title: item.product.title,
         quantity: item.quantity,
@@ -479,7 +477,7 @@ export function StorefrontProvider({
     }
   };
 
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartCount = cart.reduce((sum: number, item: CartLine) => sum + item.quantity, 0);
   const wishlistCount = wishlist.length;
 
   return (
