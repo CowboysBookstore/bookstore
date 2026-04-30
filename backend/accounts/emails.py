@@ -119,7 +119,39 @@ def _send_via_brevo(
 
 
 def _send_email(subject: str, plain: str, html: str, to: list[str]) -> None:
-    """Send via Brevo if configured, otherwise fall back to Django email backend."""
+    """Send email using the best available provider.
+
+    Priority:
+      1) Gmail API (OAuth) when GMAIL_REFRESH_TOKEN is set
+      2) Brevo HTTP API when BREVO_API_KEY is set
+      3) Django email backend
+    """
+
+    if os.getenv("GMAIL_REFRESH_TOKEN", "").strip():
+        # Import lazily so dev/test environments that haven't installed the
+        # Google client libraries don't crash just by importing this module.
+        from .gmail_sender import send_gmail_message
+
+        default_from = settings.DEFAULT_FROM_EMAIL
+        from_email = os.getenv("GMAIL_FROM_EMAIL", "").strip()
+        if not from_email:
+            if "<" in default_from and ">" in default_from:
+                from_email = default_from.split("<", 1)[1].split(">", 1)[0].strip()
+            else:
+                from_email = default_from.strip()
+
+        from_name = os.getenv("GMAIL_FROM_NAME", "").strip() or "Cowboy Bookstore"
+        reply_to = os.getenv("GMAIL_REPLY_TO", "").strip() or None
+        send_gmail_message(
+            from_email=from_email,
+            from_name=from_name,
+            to_emails=to,
+            subject=subject,
+            plain=plain,
+            html=html,
+            reply_to=reply_to,
+        )
+        return
 
     if os.getenv("BREVO_API_KEY", "").strip():
         _send_via_brevo(subject=subject, plain=plain, html=html, to_emails=to)

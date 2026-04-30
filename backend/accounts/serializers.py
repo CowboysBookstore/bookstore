@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.utils import timezone
 from rest_framework import serializers
 import logging
+import os
 
 from .emails import send_activation_email, send_password_reset_email
 from .models import ActivationCode, PasswordResetCode
@@ -38,12 +39,29 @@ class RegisterSerializer(serializers.Serializer):
         user.set_password(password)
         user.save()
         activation = ActivationCode.create_for_user(user, lifetime=timedelta(hours=24))
+        expose_codes = os.getenv("EXPOSE_AUTH_CODES", "").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
         try:
             send_activation_email(user.email, activation.code)
         except Exception:
             # Email delivery can fail in production (SMTP blocked/timeouts). Don't fail registration.
             logger.exception("Activation email failed to send")
+            
+        # Emergency fallback for demos/launches: expose the code in the response when enabled.
+        if expose_codes:
+            self._activation_code = activation.code
         return user
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        code = getattr(self, "_activation_code", None)
+        if code:
+            data["activation_code"] = code
+        return data
 
 
 class ActivationVerifySerializer(serializers.Serializer):
@@ -113,11 +131,21 @@ class ForgotPasswordSerializer(serializers.Serializer):
         reset = PasswordResetCode.create_for_user(
             self.user, lifetime=timedelta(hours=24)
         )
+        expose_codes = os.getenv("EXPOSE_AUTH_CODES", "").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
         try:
             send_password_reset_email(self.user.email, reset.code)
         except Exception:
             logger.exception("Password reset email failed to send")
-        return {"detail": "Password reset code sent."}
+            
+        response_data = {"detail": "Password reset code sent."}
+        if expose_codes:
+            response_data["reset_code"] = reset.code
+        return response_data
 
 
 class ResetPasswordSerializer(serializers.Serializer):
