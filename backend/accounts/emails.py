@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+import os
+from typing import Iterable
+
 from django.conf import settings
 from django.core.mail import send_mail
+
+import requests
 
 
 def _base_html(title: str, body_content: str) -> str:
@@ -56,6 +61,74 @@ def _base_html(title: str, body_content: str) -> str:
 </html>"""
 
 
+def _send_via_resend(
+    *,
+    subject: str,
+    plain: str,
+    html: str,
+    to_emails: Iterable[str],
+) -> None:
+    """Send an email using Resend's HTTP API.
+
+    This avoids SMTP (often blocked on hosts like Render), while keeping
+    the rest of the app unchanged.
+
+    Enable by setting:
+      - RESEND_API_KEY
+
+    Optionally set:
+      - RESEND_FROM_EMAIL (defaults to DEFAULT_FROM_EMAIL)
+      - RESEND_TIMEOUT_SECONDS (defaults to 10)
+    """
+
+    api_key = os.getenv("RESEND_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("RESEND_API_KEY is not set")
+
+    from_email = os.getenv("RESEND_FROM_EMAIL", "").strip() or settings.DEFAULT_FROM_EMAIL
+    timeout = int(os.getenv("RESEND_TIMEOUT_SECONDS", "10"))
+
+    # Resend expects: to: ["user@example.com"], from: "Name <email@domain>"
+    payload = {
+        "from": from_email,
+        "to": list(to_emails),
+        "subject": subject,
+        "text": plain,
+        "html": html,
+    }
+
+    resp = requests.post(
+        "https://api.resend.com/emails",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json=payload,
+        timeout=timeout,
+    )
+    if resp.status_code >= 400:
+        raise RuntimeError(
+            f"Resend API error {resp.status_code}: {resp.text[:500]}"
+        )
+
+
+def _send_email(subject: str, plain: str, html: str, to: list[str]) -> None:
+    """Send via Resend if configured, otherwise fall back to Django email backend."""
+
+    if os.getenv("RESEND_API_KEY", "").strip():
+        _send_via_resend(subject=subject, plain=plain, html=html, to_emails=to)
+        return
+
+    send_mail(
+        subject,
+        plain,
+        settings.DEFAULT_FROM_EMAIL,
+        to,
+        html_message=html,
+        fail_silently=False,
+    )
+
+
 def send_activation_email(email: str, code: str) -> None:
     subject = "Cowboy Bookstore — Your verification code"
 
@@ -85,14 +158,7 @@ This code expires in 24 hours. If you didn't create an account, ignore this emai
 
     html = _base_html("Verify your account", body)
 
-    send_mail(
-        subject,
-        plain,
-        settings.DEFAULT_FROM_EMAIL,
-        [email],
-        html_message=html,
-        fail_silently=False,
-    )
+    _send_email(subject, plain, html, [email])
 
 
 def send_password_reset_email(email: str, code: str) -> None:
@@ -124,11 +190,4 @@ This code expires in 24 hours. If you didn't request this, ignore this email.
 
     html = _base_html("Reset your password", body)
 
-    send_mail(
-        subject,
-        plain,
-        settings.DEFAULT_FROM_EMAIL,
-        [email],
-        html_message=html,
-        fail_silently=False,
-    )
+    _send_email(subject, plain, html, [email])

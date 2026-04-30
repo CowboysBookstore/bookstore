@@ -42,8 +42,21 @@ Once deployed, go to backend service settings and add:
 
 ```
 DJANGO_SECRET_KEY=your-secret-key-from-.env
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=your-gmail-app-password
+# Email (recommended: Resend HTTP API, avoids SMTP blocks)
+RESEND_API_KEY=your-resend-api-key
+RESEND_FROM_EMAIL=Cowboy Bookstore <no-reply@yourdomain.com>
+
+# If you prefer SMTP instead (often blocked on free hosts), use:
+# EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+# EMAIL_HOST=smtp.gmail.com
+# EMAIL_PORT=587
+# EMAIL_USE_TLS=true
+# EMAIL_HOST_USER=your-email@gmail.com
+# EMAIL_HOST_PASSWORD=your-gmail-app-password
+
+# To disable real email and just print codes to logs:
+# EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+
 JWT_SIGNING_KEY=your-jwt-key-from-.env
 STRIPE_SECRET_KEY=sk_test_xxx (or sk_live_xxx)
 ```
