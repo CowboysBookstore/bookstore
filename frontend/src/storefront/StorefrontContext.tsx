@@ -1,13 +1,14 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import type { AxiosResponse } from "axios";
-import { seededOrders, storefrontProducts } from "./data";
+import { seededOrders } from "./data";
 import type {
   CartItem,
   CartLine,
   CheckoutPayload,
   OrderRecord,
   Product,
+  PromoCodeDetails,
   PricingSummary,
   WishlistEntry,
   WishlistItemDetail,
@@ -15,7 +16,6 @@ import type {
 } from "./types";
 import {
   calculatePricing,
-  findPromoOffer,
   normalizeOrders,
   normalizeWishlist,
   resolveCartItems,
@@ -25,7 +25,12 @@ const CART_KEY = "bookstore.cart";
 const WISHLIST_KEY = "bookstore.wishlist";
 const ORDERS_KEY = "bookstore.orders";
 const PROMO_KEY = "bookstore.promo";
-const fallbackProductsById = new Map(
+
+// Fallback products from local JSON (catalog.json), used if API fails.
+// This ensures the app can still display products even if the backend is down.
+// Using 'require' here to avoid potential circular dependency issues with data.ts
+const storefrontProducts = require("./data").storefrontProducts;
+const fallbackProductsById = new Map( 
   storefrontProducts.map((product) => [product.id, product]),
 );
 
@@ -44,7 +49,8 @@ interface StorefrontContextValue {
   cartCount: number;
   wishlistCount: number;
   appliedPromoCode: string | null;
-  addToCart: (productId: string, quantity?: number) => void;
+  appliedPromoDetails: PromoCodeDetails | null; // New: full promo details
+  addToCart: (productId: string, quantity?: number) => void; 
   updateCartQuantity: (productId: string, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   moveCartToWishlist: (productId: string) => void;
@@ -57,7 +63,7 @@ interface StorefrontContextValue {
   moveWishlistToCart: (productId: string) => void;
   moveAllWishlistToCart: () => void;
   clearCart: () => void;
-  applyPromoCode: (code: string) => PromoCodeResult;
+  applyPromoCode: (code: string) => Promise<PromoCodeResult>; // Now async
   clearPromoCode: () => void;
   getPricingSummary: (fulfillment: "pickup" | "delivery") => PricingSummary;
   placeOrder: (payload: CheckoutPayload) => OrderRecord | null;
@@ -146,6 +152,7 @@ export function StorefrontProvider({
     PROMO_KEY,
     null,
   );
+  const [appliedPromoDetails, setAppliedPromoDetails] = useState<PromoCodeDetails | null>(null);
   const [products, setProducts] = useState<Product[]>(storefrontProducts);
 
   useEffect(() => {
@@ -158,7 +165,7 @@ export function StorefrontProvider({
   useEffect(() => {
     let mounted = true;
 
-    axios
+    axios // Use the centralized apiClient for consistency
       .get("/api/products/")
       .then((res: AxiosResponse<any[]>) => {
         if (!mounted) {
@@ -168,14 +175,12 @@ export function StorefrontProvider({
         const apiProducts = res.data.map((product: any) => {
           const productId = product.slug || String(product.id);
           const fallbackProduct = fallbackProductsById.get(productId);
-
           return {
             id: productId,
             title: product.title,
-            category: (product.category as Product["category"]) || "Textbooks",
-            imageUrl:
-              product.image_url ||
-              product.imageUrl ||
+            category: (product.category as Product["category"]) || "Textbooks", // Ensure category is valid
+            imageUrl: // Prioritize API image_url, then fallback
+              product.image_url || // Prefer API image_url
               fallbackProduct?.imageUrl ||
               "",
             price: Number(product.price),
@@ -190,10 +195,9 @@ export function StorefrontProvider({
             stock: product.inventory || 0,
             rating: product.rating || 4.5,
             pickupNote: product.pickup_note || "",
-            deliveryNote: product.delivery_note || "",
-            highlights: product.highlights || [],
-            coverGradient:
-              product.cover_gradient ||
+            deliveryNote: product.delivery_note || "", // Ensure these fields are always strings
+            highlights: product.highlights || [], // Ensure highlights is an array
+            coverGradient: // Use API cover_gradient or fallback
               product.coverGradient ||
               fallbackProduct?.coverGradient ||
               "linear-gradient(135deg,#0f172a 0%, #1d4ed8 55%, #60a5fa 100%)",
@@ -393,37 +397,44 @@ export function StorefrontProvider({
     setCart([]);
   };
 
-  const applyPromoCode = (code: string) => {
-    const offer = findPromoOffer(code);
+  const applyPromoCode = async (code: string): Promise<PromoCodeResult> => {
+    try {
+      const response = await axios.post("/api/products/promocodes/validate/", {
+        code,
+      });
+      const promoData: PromoCodeDetails = response.data;
 
-    if (!offer) {
+      // Check if the promo code is valid for the current cart total (if minimum_cart_total is set)
+      const currentSubtotal = cartItems.reduce((sum, item) => sum + item.lineTotal, 0);
+      if (promoData.minimum_cart_total && currentSubtotal < promoData.minimum_cart_total) {
+        setAppliedPromoCode(null);
+        setAppliedPromoDetails(null);
+        return { success: false, message: `Minimum cart total of ${formatCurrency(promoData.minimum_cart_total)} required.` };
+      }
+
+      setAppliedPromoCode(promoData.code);
+      setAppliedPromoDetails(promoData);
+      return { success: true, message: `Promo code "${promoData.code}" applied!` };
+    } catch (error: any) {
+      setAppliedPromoCode(null);
+      setAppliedPromoDetails(null);
+      const errorMessage = error.response?.data?.detail || "Invalid promo code.";
       return {
         success: false,
-        message: "That promo code is not recognized yet.",
-      } satisfies PromoCodeResult;
+        message: errorMessage,
+      };
     }
-
-    const pricing = calculatePricing(cartItems, "pickup", offer.code);
-    if (offer.minimumSubtotal && pricing.subtotal < offer.minimumSubtotal) {
-      return {
-        success: false,
-        message: `This code activates once the cart reaches at least $${offer.minimumSubtotal.toFixed(2)}.`,
-      } satisfies PromoCodeResult;
-    }
-
-    setAppliedPromoCode(offer.code);
-    return {
-      success: true,
-      message: `${offer.code} is applied to this cart.`,
-    } satisfies PromoCodeResult;
   };
 
   const clearPromoCode = () => {
     setAppliedPromoCode(null);
+    setAppliedPromoDetails(null); // Clear details too
   };
 
-  const getPricingSummary = (fulfillment: "pickup" | "delivery") =>
-    calculatePricing(cartItems, fulfillment, appliedPromoCode);
+  const getPricingSummary = (fulfillment: "pickup" | "delivery") => {
+    // calculatePricing now expects appliedPromoDetails
+    return calculatePricing(cartItems, fulfillment, appliedPromoDetails);
+  };
 
   const placeOrder = (payload: CheckoutPayload) => {
     if (cartItems.length === 0) {
@@ -435,7 +446,7 @@ export function StorefrontProvider({
     const nextOrder: OrderRecord = {
       id: `CB-${Date.now().toString().slice(-6)}`,
       placedAt: new Date().toISOString(),
-      status:
+      status: // Initial status based on fulfillment
         payload.fulfillment === "pickup"
           ? "Confirmed for pickup"
           : "Packing for delivery",
@@ -448,7 +459,7 @@ export function StorefrontProvider({
       pickupSlot: payload.pickupSlot,
       deliveryAddress: payload.deliveryAddress,
       deliveryInstructions: payload.deliveryInstructions,
-      customer: payload.customer,
+      customer: payload.customer, // This should eventually come from authenticated user context
       paymentMethod: payload.paymentMethod,
       paymentLabel: payload.paymentLabel,
       promoCode: payload.promoCode,
@@ -464,6 +475,7 @@ export function StorefrontProvider({
     setOrders((current) => [nextOrder, ...current]);
     setCart([]);
     setAppliedPromoCode(null);
+    setAppliedPromoDetails(null); // Clear promo details after order
     return nextOrder;
   };
 
@@ -471,8 +483,8 @@ export function StorefrontProvider({
   const wishlistCount = wishlist.length;
 
   return (
-    <StorefrontContext.Provider
-      value={{
+    <StorefrontContext.Provider // Use useMemo for value to prevent unnecessary re-renders
+      value={useMemo(() => ({
         products,
         cart,
         wishlist,
@@ -482,6 +494,7 @@ export function StorefrontProvider({
         cartCount,
         wishlistCount,
         appliedPromoCode,
+        appliedPromoDetails, // Expose new state
         addToCart,
         updateCartQuantity,
         removeFromCart,
@@ -497,8 +510,8 @@ export function StorefrontProvider({
         getPricingSummary,
         placeOrder,
         getProduct,
-      }}
-    >
+      }), [products, cart, wishlist, cartItems, wishlistItems, orders, cartCount, wishlistCount, appliedPromoCode, appliedPromoDetails, addToCart, updateCartQuantity, removeFromCart, moveCartToWishlist, toggleWishlist, updateWishlistPriority, removeFromWishlist, moveWishlistToCart, moveAllWishlistToCart, clearCart, applyPromoCode, clearPromoCode, getPricingSummary, placeOrder, getProduct])}
+    > 
       {children}
     </StorefrontContext.Provider>
   );
@@ -506,7 +519,7 @@ export function StorefrontProvider({
 
 export function useStorefront() {
   const context = useContext(StorefrontContext);
-
+  // Ensure context is available
   if (!context) {
     throw new Error("useStorefront must be used within StorefrontProvider");
   }

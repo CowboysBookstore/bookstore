@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from decimal import Decimal
 from typing import Iterable
 
 from django.conf import settings
@@ -227,5 +228,83 @@ This code expires in 24 hours. If you didn't request this, ignore this email.
 </p>"""
 
     html = _base_html("Reset your password", body)
+
+    _send_email(subject, plain, html, [email])
+
+
+def send_order_confirmation_email(email: str, order) -> None:
+    """Sends an order confirmation email to the customer."""
+    subject = f"Cowboy Bookstore — Order #{order.id} Confirmation"
+
+    # Build plain text content
+    plain_items = "\n".join([
+        f"- {item.quantity}x {item.title} ({item.category}) @ ${item.unit_price:.2f} each"
+        for item in order.items.all()
+    ])
+    plain = (
+        f"Thank you for your order from Cowboy Bookstore!\n\n"
+        f"Order #{order.id}\n"
+        f"Placed On: {order.placed_at.strftime('%B %d, %Y at %I:%M %p')}\n"
+        f"Status: {order.get_status_display()}\n\n"
+        f"Items:\n{plain_items}\n\n"
+        f"Subtotal: ${order.subtotal:.2f}\n"
+    )
+    if order.discount > Decimal('0.00'):
+        plain += f"Discount: -${order.discount:.2f}\n"
+    plain += (
+        f"Tax: ${order.tax:.2f}\n"
+        f"Fulfillment Fee: ${order.fulfillment_fee:.2f}\n"
+        f"Total: ${order.total:.2f}\n\n"
+        f"Fulfillment: {order.fulfillment_method.replace('_', ' ').title()}\n"
+    )
+    if order.fulfillment_method == "pickup":
+        plain += f"Pickup Slot: {order.pickup_slot}\n"
+    elif order.fulfillment_method == "delivery":
+        plain += f"Delivery Address: {order.delivery_address}\n"
+        if order.delivery_instructions:
+            plain += f"Delivery Instructions: {order.delivery_instructions}\n"
+    plain += "\nWe'll notify you when your order status changes."
+
+    # Build HTML content
+    html_items = "".join([
+        f"""<tr>
+            <td style="padding:8px 0;font-size:14px;color:#64748b;">{item.quantity}x {item.title} ({item.category})</td>
+            <td style="padding:8px 0;font-size:14px;color:#64748b;text-align:right;">${item.unit_price:.2f}</td>
+        </tr>"""
+        for item in order.items.all()
+    ])
+
+    body = f"""\
+<h2 style="margin:0 0 8px 0;font-size:22px;color:#0f172a;">Order #{order.id} Confirmed!</h2>
+<p style="margin:0 0 24px 0;font-size:14px;color:#64748b;">
+Thank you for your purchase from Cowboy Bookstore. Your order has been placed successfully.
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;border-collapse:collapse;">
+    <tr><td colspan="2" style="padding-bottom:8px;font-size:16px;font-weight:600;color:#0f172a;">Order Details</td></tr>
+    <tr><td style="padding:4px 0;font-size:14px;color:#64748b;">Placed On:</td><td style="padding:4px 0;font-size:14px;color:#0f172a;text-align:right;">{order.placed_at.strftime('%B %d, %Y at %I:%M %p')}</td></tr>
+    <tr><td style="padding:4px 0;font-size:14px;color:#64748b;">Status:</td><td style="padding:4px 0;font-size:14px;color:#0f172a;text-align:right;">{order.get_status_display()}</td></tr>
+    <tr><td style="padding:4px 0;font-size:14px;color:#64748b;">Fulfillment:</td><td style="padding:4px 0;font-size:14px;color:#0f172a;text-align:right;">{order.fulfillment_method.replace('_', ' ').title()}</td></tr>
+    {"<tr><td style='padding:4px 0;font-size:14px;color:#64748b;'>Pickup Slot:</td><td style='padding:4px 0;font-size:14px;color:#0f172a;text-align:right;'>"+order.pickup_slot+"</td></tr>" if order.fulfillment_method == "pickup" else ""}
+    {"<tr><td style='padding:4px 0;font-size:14px;color:#64748b;'>Delivery Address:</td><td style='padding:4px 0;font-size:14px;color:#0f172a;text-align:right;'>"+order.delivery_address+"</td></tr>" if order.fulfillment_method == "delivery" else ""}
+    {"<tr><td style='padding:4px 0;font-size:14px;color:#64748b;'>Instructions:</td><td style='padding:4px 0;font-size:14px;color:#0f172a;text-align:right;'>"+order.delivery_instructions+"</td></tr>" if order.fulfillment_method == "delivery" and order.delivery_instructions else ""}
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;border-collapse:collapse;">
+    <tr><td colspan="2" style="padding-bottom:8px;font-size:16px;font-weight:600;color:#0f172a;">Items</td></tr>
+    {html_items}
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e2e8f0;padding-top:16px;border-collapse:collapse;">
+    <tr><td style="padding:4px 0;font-size:14px;color:#64748b;">Subtotal:</td><td style="padding:4px 0;font-size:14px;color:#0f172a;text-align:right;">${order.subtotal:.2f}</td></tr>
+    {"<tr><td style='padding:4px 0;font-size:14px;color:#64748b;color:#10b981;'>Discount:</td><td style='padding:4px 0;font-size:14px;color:#10b981;text-align:right;'>-${order.discount:.2f}</td></tr>" if order.discount > Decimal('0.00') else ""}
+    <tr><td style="padding:4px 0;font-size:14px;color:#64748b;">Tax:</td><td style="padding:4px 0;font-size:14px;color:#0f172a;text-align:right;">${order.tax:.2f}</td></tr>
+    <tr><td style="padding:4px 0;font-size:14px;color:#64748b;">Fulfillment Fee:</td><td style="padding:4px 0;font-size:14px;color:#0f172a;text-align:right;">${order.fulfillment_fee:.2f}</td></tr>
+    <tr><td style="padding:8px 0;font-size:16px;font-weight:700;color:#0f172a;border-top:1px solid #e2e8f0;">Total:</td><td style="padding:8px 0;font-size:18px;font-weight:700;color:#0f172a;text-align:right;border-top:1px solid #e2e8f0;">${order.total:.2f}</td></tr>
+</table>
+<p style="margin:24px 0 0 0;font-size:13px;color:#94a3b8;">
+We'll send you another email when your order status changes.
+</p>"""
+
+    html = _base_html(f"Order #{order.id} Confirmation", body)
 
     _send_email(subject, plain, html, [email])

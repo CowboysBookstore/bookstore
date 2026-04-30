@@ -26,14 +26,16 @@ function StatCard({
 function FeatureCard({
   title,
   description,
+  label,
 }: {
   title: string;
   description: string;
+  label: string;
 }) {
   return (
     <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mcneeseBlue">
-        Feature
+        {label}
       </p>
       <h3 className="mt-3 text-xl font-semibold text-slate-900">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
@@ -108,7 +110,7 @@ export default function HomePage() {
                     Student-first flow
                   </h2>
                 </div>
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800"> {/* Status badge */}
                   Store ready
                 </span>
               </div>
@@ -143,14 +145,17 @@ export default function HomePage() {
         <FeatureCard
           title="Explore catalog"
           description="Browse the full catalog and open individual product pages for details and availability."
+          label="Discovery"
         />
         <FeatureCard
           title="Student-first flow"
           description="Search and filter products, save items to a wishlist, and add them to cart with minimal friction."
+          label="Experience"
         />
         <FeatureCard
           title="Checkout & orders"
           description="Choose pickup or delivery at checkout and review recent orders in one place."
+          label="Fulfillment"
         />
       </section>
 

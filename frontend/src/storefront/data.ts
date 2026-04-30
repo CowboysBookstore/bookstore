@@ -1,15 +1,11 @@
 import catalogData from "./catalog.json";
 import type { OrderRecord, Product } from "./types";
-
-export {
-  formatCurrency,
+import {
   formatOrderDate,
   formatOrderDateTime,
   formatShortDate,
-  getPickupWindows,
-  promoOffers,
+  // formatCurrency, getPickupWindows, etc. are now imported directly where needed from utils.ts
 } from "./utils";
-
 type CatalogProductRecord = {
   slug: string;
   title: string;

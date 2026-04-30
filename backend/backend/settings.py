@@ -236,6 +236,16 @@ UNFOLD = {
                         "icon": "inventory_2",
                         "link": "/admin/products/product/",
                     },
+                    {
+                        "title": "Promo Codes",
+                        "icon": "local_offer",
+                        "link": "/admin/products/promocode/",
+                    },
+                    {
+                        "title": "Orders",
+                        "icon": "receipt_long",
+                        "link": "/admin/products/order/",
+                    },
                 ],
             },
         ],
