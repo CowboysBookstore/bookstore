@@ -1,6 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { apiClient } from "../api/client"; // Use the centralized API client
-import type { AxiosResponse } from "axios"; // Keep for type hinting if needed, but apiClient handles the instance
 import { seededOrders } from "./data";
 import type {
   CartItem,
@@ -166,7 +165,7 @@ export function StorefrontProvider({
 
     apiClient // Use the centralized apiClient for consistency
       .get("/api/products/")
-      .then((res: AxiosResponse<any[]>) => {
+      .then((res) => {
         if (!mounted) {
           return;
         }
