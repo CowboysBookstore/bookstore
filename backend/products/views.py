@@ -96,8 +96,12 @@ class OrderCheckoutView(APIView):
 
         with transaction.atomic():
             # Create the Order
+            customer_data = payload.get("customer", {})
             order = Order.objects.create(
                 user=request.user if request.user.is_authenticated else None,
+                customer_full_name=customer_data.get("fullName", ""),
+                customer_email=customer_data.get("email", ""),
+                customer_phone=customer_data.get("phone", ""),
                 status="pending", # Initial status, will be updated after processing
                 fulfillment_method=payload.get("fulfillment"),
                 pickup_slot=payload.get("pickupSlot"),

@@ -229,3 +229,126 @@ This code expires in 24 hours. If you didn't request this, ignore this email.
     html = _base_html("Reset your password", body)
 
     _send_email(subject, plain, html, [email])
+
+
+def send_order_confirmation_email(email: str, order) -> None:
+    """Send order confirmation email to customer."""
+    from django.utils.dateformat import format as dateformat
+    
+    subject = f"Cowboy Bookstore — Order #{order.id} confirmed"
+
+    # Format order items for plain text
+    items_text = ""
+    for item in order.items.all():
+        items_text += f"  • {item.title} (x{item.quantity}) @ ${item.unit_price:.2f} = ${item.unit_price * item.quantity:.2f}\n"
+
+    fulfillment_text = (
+        f"Pickup: {order.pickup_slot}" 
+        if order.fulfillment_method == "pickup" 
+        else f"Delivery to: {order.delivery_address}"
+    )
+
+    plain = f"""\
+Thank you for your order!
+
+Order #{order.id}
+Placed: {order.created_at.strftime('%B %d, %Y at %I:%M %p')}
+
+Items:
+{items_text}
+Subtotal: ${order.subtotal:.2f}
+Discount: -${order.discount:.2f}
+Tax: ${order.tax:.2f}
+Fulfillment fee: ${order.fulfillment_fee:.2f}
+Total: ${order.total:.2f}
+
+{fulfillment_text}
+Payment method: {order.payment_label}
+
+Your order is being prepared. You'll receive a shipping update soon.
+
+Questions? Reply to this email or visit Cowboy Bookstore.
+"""
+
+    # Format order items for HTML
+    items_html = ""
+    for item in order.items.all():
+        items_html += f"""
+<tr>
+  <td style="padding:12px;border-bottom:1px solid #e2e8f0;">
+    <p style="margin:0 0 4px 0;font-weight:600;color:#0f172a;">{item.title}</p>
+    <p style="margin:0;font-size:13px;color:#64748b;">Qty: {item.quantity} @ ${item.unit_price:.2f}</p>
+  </td>
+  <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:right;color:#0f172a;font-weight:600;">
+    ${item.unit_price * item.quantity:.2f}
+  </td>
+</tr>
+"""
+
+    fulfillment_html = (
+        f"<strong>Pickup:</strong> {order.pickup_slot}" 
+        if order.fulfillment_method == "pickup" 
+        else f"<strong>Delivery to:</strong> {order.delivery_address}"
+    )
+
+    body = f"""\
+<h2 style="margin:0 0 8px 0;font-size:22px;color:#0f172a;">Order confirmed!</h2>
+<p style="margin:0 0 24px 0;font-size:14px;color:#64748b;">
+Thank you for shopping at Cowboy Bookstore. Your order has been received and is being prepared.
+</p>
+
+<div style="background-color:#f1f5f9;border-radius:12px;padding:16px;margin:0 0 24px 0;">
+<p style="margin:0 0 8px 0;font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Order #</p>
+<p style="margin:0;font-size:18px;font-weight:700;color:#0f172a;">{order.id}</p>
+</div>
+
+<p style="margin:0 0 12px 0;font-size:13px;color:#94a3b8;">
+<strong>Placed:</strong> {order.created_at.strftime('%B %d, %Y at %I:%M %p')}
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px 0;">
+{items_html}
+<tr>
+  <td style="padding:12px;text-align:right;color:#64748b;">Subtotal</td>
+  <td style="padding:12px;text-align:right;color:#0f172a;font-weight:600;">${order.subtotal:.2f}</td>
+</tr>
+<tr>
+  <td style="padding:12px;text-align:right;color:#64748b;">Discount</td>
+  <td style="padding:12px;text-align:right;color:#10b981;font-weight:600;">-${order.discount:.2f}</td>
+</tr>
+<tr>
+  <td style="padding:12px;text-align:right;color:#64748b;">Tax</td>
+  <td style="padding:12px;text-align:right;color:#0f172a;font-weight:600;">${order.tax:.2f}</td>
+</tr>
+<tr>
+  <td style="padding:12px;text-align:right;color:#64748b;">Fulfillment</td>
+  <td style="padding:12px;text-align:right;color:#0f172a;font-weight:600;">${order.fulfillment_fee:.2f}</td>
+</tr>
+<tr style="background-color:#f1f5f9;">
+  <td style="padding:12px;text-align:right;color:#64748b;font-weight:600;">Total</td>
+  <td style="padding:12px;text-align:right;color:#0f172a;font-weight:700;font-size:16px;">${order.total:.2f}</td>
+</tr>
+</table>
+
+<div style="background-color:#f9f3e6;border-radius:12px;padding:16px;margin:0 0 24px 0;">
+<p style="margin:0 0 8px 0;font-size:13px;color:#92400e;font-weight:600;">Fulfillment Details</p>
+<p style="margin:0;font-size:14px;color:#78350f;">
+{fulfillment_html}
+</p>
+</div>
+
+<div style="background-color:#f3f4f6;border-radius:12px;padding:16px;">
+<p style="margin:0 0 8px 0;font-size:13px;color:#374151;font-weight:600;">Payment Method</p>
+<p style="margin:0;font-size:14px;color:#4b5563;">
+{order.payment_label}
+</p>
+</div>
+
+<p style="margin:32px 0 0 0;font-size:13px;color:#94a3b8;">
+Your order is being prepared and will ship soon. You'll receive a tracking update via email.
+</p>
+"""
+
+    html = _base_html("Order confirmed", body)
+
+    _send_email(subject, plain, html, [email])

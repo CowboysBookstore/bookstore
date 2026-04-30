@@ -445,6 +445,7 @@ export function StorefrontProvider({
       pickupSlot: payload.pickupSlot,
       deliveryAddress: payload.deliveryAddress,
       deliveryInstructions: payload.deliveryInstructions,
+      customer: payload.customer,
       paymentMethod: payload.paymentMethod,
       paymentLabel: payload.paymentLabel,
       promoCode: appliedPromoCode, // Send the applied promo code string

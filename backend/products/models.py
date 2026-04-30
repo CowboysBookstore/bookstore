@@ -42,6 +42,9 @@ class Order(models.Model):
         blank=True,
         help_text="The user who placed the order (if authenticated).",
     )
+    customer_full_name = models.CharField(max_length=255, blank=True, default="")
+    customer_email = models.EmailField(blank=True, default="")
+    customer_phone = models.CharField(max_length=20, blank=True, default="")
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="pending")
     fulfillment_method = models.CharField(max_length=50)
     pickup_slot = models.CharField(max_length=255, blank=True, null=True)
@@ -52,7 +55,7 @@ class Order(models.Model):
     tax = models.DecimalField(max_digits=10, decimal_places=2)
     fulfillment_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     total = models.DecimalField(max_digits=10, decimal_places=2)
-    promo_code = models.ForeignKey(PromoCode, on_delete=models.SET_NULL, null=True, blank=True)
+    promo_code = models.ForeignKey("PromoCode", on_delete=models.SET_NULL, null=True, blank=True)
     payment_method = models.CharField(max_length=50)
     payment_label = models.CharField(max_length=255) # e.g., "Card ending in 1234", "Student ID 000123456"
     placed_at = models.DateTimeField(auto_now_add=True)

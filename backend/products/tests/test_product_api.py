@@ -20,7 +20,7 @@ def product_payload():
         "short_description": "Required lab manual",
         "description": "Core chemistry lab manual for first-year students.",
         "price": "42.50",
-        "inventory": 14,
+        "stock": 14,
         "badge": "Required",
         "format": "Paperback",
         "rating": 4.7,
@@ -33,7 +33,7 @@ def product_payload():
 
 @pytest.mark.django_db
 def test_product_list_is_public(client):
-    Product.objects.create(title="ENG 101 Writing Handbook", price="64.99", inventory=5)
+    Product.objects.create(title="ENG 101 Writing Handbook", price="64.99", stock=5)
 
     response = client.get("/api/products/")
 
