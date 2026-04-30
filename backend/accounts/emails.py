@@ -61,71 +61,71 @@ def _base_html(title: str, body_content: str) -> str:
 </html>"""
 
 
-def _send_via_sendgrid(
+def _send_via_mailjet(
     *,
     subject: str,
     plain: str,
     html: str,
     to_emails: Iterable[str],
 ) -> None:
-    """Send an email using SendGrid's HTTP API (avoids blocked SMTP on Render).
+    """Send an email using Mailjet's HTTP API (avoids blocked SMTP on Render).
 
     Enable by setting:
-      - SENDGRID_API_KEY
+      - MAILJET_API_KEY
+      - MAILJET_SECRET_KEY
 
     Optionally set:
-      - SENDGRID_FROM_EMAIL (defaults to DEFAULT_FROM_EMAIL)
-      - SENDGRID_TIMEOUT_SECONDS (defaults to 10)
-
-    Notes:
-      - SendGrid may require verifying the sender (Single Sender Verification)
-        or a domain, depending on your account.
+      - MAILJET_FROM_EMAIL (defaults to DEFAULT_FROM_EMAIL)
+      - MAILJET_FROM_NAME (defaults to "Cowboy Bookstore")
+      - MAILJET_TIMEOUT_SECONDS (defaults to 10)
     """
 
-    api_key = os.getenv("SENDGRID_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError("SENDGRID_API_KEY is not set")
+    api_key = os.getenv("MAILJET_API_KEY", "").strip()
+    secret_key = os.getenv("MAILJET_SECRET_KEY", "").strip()
+    if not api_key or not secret_key:
+        raise RuntimeError("MAILJET_API_KEY/MAILJET_SECRET_KEY is not set")
 
-    from_email = (
-        os.getenv("SENDGRID_FROM_EMAIL", "").strip() or settings.DEFAULT_FROM_EMAIL
-    )
-    timeout = int(os.getenv("SENDGRID_TIMEOUT_SECONDS", "10"))
+    default_from = settings.DEFAULT_FROM_EMAIL
+    # settings.DEFAULT_FROM_EMAIL may be "Name <email>". Mailjet expects split name/email.
+    from_email = os.getenv("MAILJET_FROM_EMAIL", "").strip()
+    if not from_email:
+        if "<" in default_from and ">" in default_from:
+            from_email = default_from.split("<", 1)[1].split(">", 1)[0].strip()
+        else:
+            from_email = default_from.strip()
 
-    # SendGrid v3 Mail Send
+    from_name = os.getenv("MAILJET_FROM_NAME", "").strip() or "Cowboy Bookstore"
+    timeout = int(os.getenv("MAILJET_TIMEOUT_SECONDS", "10"))
+
     payload = {
-        "personalizations": [
+        "Messages": [
             {
-                "to": [{"email": e} for e in to_emails],
-                "subject": subject,
+                "From": {"Email": from_email, "Name": from_name},
+                "To": [{"Email": e} for e in to_emails],
+                "Subject": subject,
+                "TextPart": plain,
+                "HTMLPart": html,
             }
-        ],
-        "from": {"email": from_email},
-        "content": [
-            {"type": "text/plain", "value": plain},
-            {"type": "text/html", "value": html},
-        ],
+        ]
     }
 
     resp = requests.post(
-        "https://api.sendgrid.com/v3/mail/send",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
+        "https://api.mailjet.com/v3.1/send",
+        auth=(api_key, secret_key),
         json=payload,
         timeout=timeout,
     )
     if resp.status_code >= 400:
-        raise RuntimeError(
-            f"SendGrid API error {resp.status_code}: {resp.text[:500]}"
-        )
+        raise RuntimeError(f"Mailjet API error {resp.status_code}: {resp.text[:500]}")
 
 
 def _send_email(subject: str, plain: str, html: str, to: list[str]) -> None:
-    """Send via SendGrid if configured, otherwise fall back to Django email backend."""
+    """Send via Mailjet if configured, otherwise fall back to Django email backend."""
 
-    if os.getenv("SENDGRID_API_KEY", "").strip():
-        _send_via_sendgrid(subject=subject, plain=plain, html=html, to_emails=to)
+    if os.getenv("MAILJET_API_KEY", "").strip() and os.getenv(
+        "MAILJET_SECRET_KEY", ""
+    ).strip():
+        _send_via_mailjet(subject=subject, plain=plain, html=html, to_emails=to)
         return
 
     send_mail(
