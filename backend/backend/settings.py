@@ -136,9 +136,30 @@ JWT_SETTINGS = {
     "AUDIENCE": os.getenv("JWT_AUDIENCE", "cowboy-users"),
 }
 
-CORS_ALLOWED_ORIGINS = os.getenv(
-    "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
-).split(",")
+# CORS
+# ALLOWED_HOSTS controls what Host headers Django accepts.
+# CORS controls which browser origins are allowed to call this API.
+
+# Explicit allow-list (comma-separated)
+CORS_ALLOWED_ORIGINS = [
+    o.strip()
+    for o in os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    ).split(",")
+    if o.strip()
+]
+
+# Optional regex-based allow (useful for Render preview URLs / changing suffixes)
+_cors_regex = os.getenv("CORS_ALLOWED_ORIGIN_REGEX", "").strip()
+if _cors_regex:
+    CORS_ALLOWED_ORIGIN_REGEXES = [_cors_regex]
+
+# Reasonable default for Render if you don't set anything:
+# allow any *.onrender.com frontends.
+if not _cors_regex and all("onrender.com" not in o for o in CORS_ALLOWED_ORIGINS):
+    CORS_ALLOWED_ORIGIN_REGEXES = [r"^https://.*\.onrender\.com$"]
+
 CORS_ALLOW_CREDENTIALS = True
 
 UNFOLD = {
@@ -209,36 +230,24 @@ UNFOLD = {
     },
 }
 
-# Logging Configuration
+# Logging Configuration (keep it simple; avoid noisy template debug output)
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "{levelname} {asctime} {module} {message}",
-            "style": "{",
-        },
-    },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
         },
     },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO" if not DEBUG else "DEBUG",
+    },
     "loggers": {
-        "django": {
+        # Keep Django template engine noise down unless explicitly debugging.
+        "django.template": {
             "handlers": ["console"],
-            "level": "DEBUG",
-            "propagate": False,
-        },
-        "django.contrib.auth": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-            "propagate": False,
-        },
-        "accounts": {
-            "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "WARNING",
             "propagate": False,
         },
     },
