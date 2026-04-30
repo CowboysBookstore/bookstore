@@ -65,7 +65,7 @@ interface StorefrontContextValue {
   applyPromoCode: (code: string) => Promise<PromoCodeResult>; // Now async
   clearPromoCode: () => void;
   getPricingSummary: (fulfillment: "pickup" | "delivery") => PricingSummary;
-  placeOrder: (payload: CheckoutPayload) => OrderRecord | null;
+  placeOrder: (payload: CheckoutPayload) => Promise<OrderRecord | null>; // Now async
   getProduct: (productId: string) => Product | undefined;
 }
 
@@ -435,34 +435,28 @@ export function StorefrontProvider({
     return calculatePricing(cartItems, fulfillment, appliedPromoDetails);
   };
 
-  const placeOrder = (payload: CheckoutPayload) => {
+  const placeOrder = async (payload: CheckoutPayload): Promise<OrderRecord | null> => {
     if (cartItems.length === 0) {
       return null;
     }
 
     const pricing = getPricingSummary(payload.fulfillment);
 
-    const nextOrder: OrderRecord = {
-      id: `CB-${Date.now().toString().slice(-6)}`,
-      placedAt: new Date().toISOString(),
-      status: // Initial status based on fulfillment
-        payload.fulfillment === "pickup"
-          ? "Confirmed for pickup"
-          : "Packing for delivery",
+    // Prepare the payload for the backend checkout endpoint
+    const orderPayload = {
       fulfillment: payload.fulfillment,
-      subtotal: pricing.subtotal,
-      tax: pricing.tax,
-      discount: payload.discount,
-      fulfillmentFee: pricing.fulfillmentFee,
-      total: pricing.total,
       pickupSlot: payload.pickupSlot,
       deliveryAddress: payload.deliveryAddress,
       deliveryInstructions: payload.deliveryInstructions,
-      customer: payload.customer, // This should eventually come from authenticated user context
       paymentMethod: payload.paymentMethod,
       paymentLabel: payload.paymentLabel,
-      promoCode: payload.promoCode,
-      items: cartItems.map((item) => ({
+      promoCode: appliedPromoCode, // Send the applied promo code string
+      subtotal: pricing.subtotal,
+      discount: pricing.discount,
+      tax: pricing.tax,
+      fulfillmentFee: pricing.fulfillmentFee,
+      total: pricing.total,
+      items: cartItems.map((item) => ({ // Send simplified cart items
         productId: item.product.id,
         title: item.product.title,
         quantity: item.quantity,
@@ -471,11 +465,19 @@ export function StorefrontProvider({
       })),
     };
 
-    setOrders((current) => [nextOrder, ...current]);
-    setCart([]);
-    setAppliedPromoCode(null);
-    setAppliedPromoDetails(null); // Clear promo details after order
-    return nextOrder;
+    try {
+      const response = await apiClient.post("/api/products/orders/checkout/", orderPayload);
+      const newOrder: OrderRecord = response.data; // Backend returns the created order
+      setOrders((current) => [newOrder, ...current]);
+      setCart([]);
+      setAppliedPromoCode(null);
+      setAppliedPromoDetails(null);
+      return newOrder;
+    } catch (error) {
+      console.error("Order placement failed:", error);
+      // In a real app, you'd set an error state here to show the user.
+      return null;
+    }
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
