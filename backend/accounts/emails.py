@@ -61,71 +61,68 @@ def _base_html(title: str, body_content: str) -> str:
 </html>"""
 
 
-def _send_via_mailjet(
+def _send_via_brevo(
     *,
     subject: str,
     plain: str,
     html: str,
     to_emails: Iterable[str],
 ) -> None:
-    """Send an email using Mailjet's HTTP API (avoids blocked SMTP on Render).
+    """Send an email using Brevo's HTTP API (avoids blocked SMTP on Render).
 
     Enable by setting:
-      - MAILJET_API_KEY
-      - MAILJET_SECRET_KEY
+      - BREVO_API_KEY
 
     Optionally set:
-      - MAILJET_FROM_EMAIL (defaults to DEFAULT_FROM_EMAIL)
-      - MAILJET_FROM_NAME (defaults to "Cowboy Bookstore")
-      - MAILJET_TIMEOUT_SECONDS (defaults to 10)
+      - BREVO_FROM_EMAIL (defaults to DEFAULT_FROM_EMAIL email part)
+      - BREVO_FROM_NAME (defaults to "Cowboy Bookstore")
+      - BREVO_TIMEOUT_SECONDS (defaults to 10)
     """
 
-    api_key = os.getenv("MAILJET_API_KEY", "").strip()
-    secret_key = os.getenv("MAILJET_SECRET_KEY", "").strip()
-    if not api_key or not secret_key:
-        raise RuntimeError("MAILJET_API_KEY/MAILJET_SECRET_KEY is not set")
+    api_key = os.getenv("BREVO_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("BREVO_API_KEY is not set")
 
     default_from = settings.DEFAULT_FROM_EMAIL
-    # settings.DEFAULT_FROM_EMAIL may be "Name <email>". Mailjet expects split name/email.
-    from_email = os.getenv("MAILJET_FROM_EMAIL", "").strip()
+    # settings.DEFAULT_FROM_EMAIL may be "Name <email>".
+    from_email = os.getenv("BREVO_FROM_EMAIL", "").strip()
     if not from_email:
         if "<" in default_from and ">" in default_from:
             from_email = default_from.split("<", 1)[1].split(">", 1)[0].strip()
         else:
             from_email = default_from.strip()
 
-    from_name = os.getenv("MAILJET_FROM_NAME", "").strip() or "Cowboy Bookstore"
-    timeout = int(os.getenv("MAILJET_TIMEOUT_SECONDS", "10"))
+    from_name = os.getenv("BREVO_FROM_NAME", "").strip() or "Cowboy Bookstore"
+    timeout = int(os.getenv("BREVO_TIMEOUT_SECONDS", "10"))
 
+    # Brevo v3 transactional email endpoint
     payload = {
-        "Messages": [
-            {
-                "From": {"Email": from_email, "Name": from_name},
-                "To": [{"Email": e} for e in to_emails],
-                "Subject": subject,
-                "TextPart": plain,
-                "HTMLPart": html,
-            }
-        ]
+        "sender": {"email": from_email, "name": from_name},
+        "to": [{"email": e} for e in to_emails],
+        "subject": subject,
+        "textContent": plain,
+        "htmlContent": html,
     }
 
     resp = requests.post(
-        "https://api.mailjet.com/v3.1/send",
-        auth=(api_key, secret_key),
+        "https://api.brevo.com/v3/smtp/email",
+        headers={
+            "accept": "application/json",
+            "api-key": api_key,
+            "content-type": "application/json",
+        },
         json=payload,
         timeout=timeout,
     )
     if resp.status_code >= 400:
-        raise RuntimeError(f"Mailjet API error {resp.status_code}: {resp.text[:500]}")
+        raise RuntimeError(f"Brevo API error {resp.status_code}: {resp.text[:500]}")
 
 
 def _send_email(subject: str, plain: str, html: str, to: list[str]) -> None:
-    """Send via Mailjet if configured, otherwise fall back to Django email backend."""
+    """Send via Brevo if configured, otherwise fall back to Django email backend."""
 
-    if os.getenv("MAILJET_API_KEY", "").strip() and os.getenv(
-        "MAILJET_SECRET_KEY", ""
-    ).strip():
-        _send_via_mailjet(subject=subject, plain=plain, html=html, to_emails=to)
+    if os.getenv("BREVO_API_KEY", "").strip():
+        _send_via_brevo(subject=subject, plain=plain, html=html, to_emails=to)
         return
 
     send_mail(
