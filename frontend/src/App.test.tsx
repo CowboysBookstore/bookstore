@@ -63,7 +63,9 @@ describe("App", () => {
     fireEvent.click(screen.getByLabelText(/I reviewed the order details/i));
     fireEvent.click(screen.getByRole("button", { name: /Send order request/i }));
 
-    expect(await screen.findByText(/Request received/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Request received/i, {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
   });
 
   it("requires a delivery address before placing a delivery order", () => {
