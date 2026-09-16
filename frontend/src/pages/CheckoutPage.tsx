@@ -163,7 +163,9 @@ export default function CheckoutPage() {
                   id: "delivery" as const,
                   title: "Delivery",
                   description:
-                    pricing.freeDeliveryRemaining === 0
+                    cartItems.length === 0
+                      ? "Add items to see the delivery estimate."
+                      : pricing.freeDeliveryRemaining === 0
                       ? "This order already qualifies for free delivery."
                       : "Delivery adds a fee until the order crosses the free-delivery threshold.",
                 },
