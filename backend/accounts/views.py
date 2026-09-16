@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+
+from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -18,11 +21,29 @@ class RegisterView(APIView):
     permission_classes: list = []
 
     def post(self, request):
+        auto_activate = os.getenv("AUTO_ACTIVATE_ACCOUNTS", "false").lower() in {
+            "1", "true", "yes", "on"
+        }
+        if (
+            not auto_activate
+            and settings.EMAIL_BACKEND == "django.core.mail.backends.console.EmailBackend"
+        ):
+            return Response(
+                {"detail": "Account creation is temporarily unavailable while email verification is being set up."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        response_data = serializer.data
-        response_data["detail"] = "Registration successful. Check your email for the activation code."
+        activation_required = getattr(serializer, "activation_required", True)
+        response_data = {
+            "activation_required": activation_required,
+            "detail": (
+                "Account created. You can sign in now."
+                if not activation_required
+                else "Account created. Check your email for the verification code."
+            ),
+        }
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 
@@ -53,6 +74,11 @@ class ForgotPasswordView(APIView):
     permission_classes: list = []
 
     def post(self, request):
+        if settings.EMAIL_BACKEND == "django.core.mail.backends.console.EmailBackend":
+            return Response(
+                {"detail": "Password recovery is temporarily unavailable while email delivery is being set up."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         serializer = ForgotPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         response_data = serializer.save()

@@ -8,42 +8,7 @@ import {
 } from "../storefront/utils";
 import { promoOffers } from "../storefront/data";
 import { useStorefront } from "../storefront/StorefrontContext";
-import type { FulfillmentMethod, PaymentMethod } from "../storefront/types";
-import { getPaymentMethodLabel } from "../storefront/utils";
-
-function StepCard({
-  number,
-  title,
-  description,
-}: {
-  number: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-mcneeseBlue text-sm font-semibold text-white">
-        {number}
-      </div>
-      <h2 className="mt-4 text-lg font-semibold text-slate-900">{title}</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
-    </div>
-  );
-}
-
-function formatCardNumber(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 16);
-  return digits.match(/.{1,4}/g)?.join(" ") ?? digits;
-}
-
-function formatExpiration(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 4);
-  if (digits.length <= 2) {
-    return digits;
-  }
-
-  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-}
+import type { FulfillmentMethod } from "../storefront/types";
 
 function formatPhoneNumber(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -72,15 +37,9 @@ export default function CheckoutPage() {
   const [pickupSlot, setPickupSlot] = useState(pickupWindows[0] ?? "");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [deliveryInstructions, setDeliveryInstructions] = useState("");
-  const [fullName, setFullName] = useState("Cowboy Student");
-  const [email, setEmail] = useState("student@mcneese.edu");
-  const [phone, setPhone] = useState("(337) 555-0144");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
-  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
-  const [expiration, setExpiration] = useState("08/28");
-  const [securityCode, setSecurityCode] = useState("123");
-  const [billingZip, setBillingZip] = useState("70609");
-  const [campusChargeId, setCampusChargeId] = useState("0002048");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [promoInput, setPromoInput] = useState(appliedPromoCode ?? "");
   const [promoFeedback, setPromoFeedback] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -135,42 +94,10 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (paymentMethod === "card") {
-      const cardDigits = cardNumber.replace(/\D/g, "");
-      const expirationDigits = expiration.replace(/\D/g, "");
-      const securityDigits = securityCode.replace(/\D/g, "");
-      const month = Number(expirationDigits.slice(0, 2));
-
-      if (
-        cardDigits.length !== 16 ||
-        expirationDigits.length !== 4 ||
-        month < 1 ||
-        month > 12 ||
-        securityDigits.length < 3 ||
-        billingZip.replace(/\D/g, "").length !== 5
-      ) {
-        setError("Enter valid card details to continue.");
-        return;
-      }
-    }
-
-    if (
-      paymentMethod === "campus-charge" &&
-      campusChargeId.replace(/\D/g, "").length < 7
-    ) {
-      setError("Enter a valid student ID to bill Cowboy Cash.");
-      return;
-    }
-
     if (!agreedToTerms) {
-      setError("Review the order details and accept the checkout terms.");
+      setError("Review your order and confirm you understand payment is not collected here.");
       return;
     }
-
-    const paymentDigits =
-      paymentMethod === "card"
-        ? cardNumber.replace(/\D/g, "")
-        : campusChargeId.replace(/\D/g, "");
 
     const order = await placeOrder({
       fulfillment,
@@ -183,8 +110,8 @@ export default function CheckoutPage() {
         email,
         phone,
       },
-      paymentMethod,
-      paymentLabel: getPaymentMethodLabel(paymentMethod, paymentDigits),
+      paymentMethod: "pay-later",
+      paymentLabel: "Payment to be arranged",
       promoCode: appliedPromoCode ?? undefined,
       discount: pricing.discount,
     });
@@ -199,43 +126,20 @@ export default function CheckoutPage() {
 
   return (
     <StorefrontLayout>
-      <section className="animate-rise rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="grid gap-8 xl:grid-cols-[1fr_0.92fr] xl:items-end">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mcneeseBlue">
-              Checkout and payment
-            </p>
-            <h1 className="mt-3 text-4xl font-semibold text-slate-900">
-              Secure checkout
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-              The checkout flow covers fulfillment choice, verified contact
-              info, promo-aware pricing, and multiple payment paths for a
-              complete purchasing experience.
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <StepCard
-              number="1"
-              title="Choose fulfillment"
-              description="Switch between campus pickup and delivery without losing pricing context."
-            />
-            <StepCard
-              number="2"
-              title="Confirm student details"
-              description="Collect the contact information needed for pickup updates or shipping notices."
-            />
-            <StepCard
-              number="3"
-              title="Pay and place"
-              description="Support card and school ID checkout in one place."
-            />
-          </div>
-        </div>
+      <section className="animate-rise border-b border-slate-200 pb-6 pt-3">
+        <p className="text-xs font-semibold uppercase text-mcneeseBlue">
+          Checkout
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold text-slate-900">
+          Review your order
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+          Tell us how you would like your items and leave a way to reach you.
+          Payment is arranged after your request is confirmed.
+        </p>
       </section>
 
-      <section className="mt-8 grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
+      <section className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6">
           {error && (
             <div className="rounded-[24px] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
@@ -253,7 +157,7 @@ export default function CheckoutPage() {
                   id: "pickup" as const,
                   title: "Campus pickup",
                   description:
-                    "Pickup stays free and lets students choose the next available store window.",
+                    "Pickup is free. Tell us which window works for you.",
                 },
                 {
                   id: "delivery" as const,
@@ -286,7 +190,7 @@ export default function CheckoutPage() {
 
             {fulfillment === "pickup" ? (
               <label className="mt-6 block text-sm font-medium text-slate-700">
-                Pickup window
+                Preferred pickup window
                 <select
                   value={pickupSlot}
                   onChange={(event) => setPickupSlot(event.target.value)}
@@ -365,136 +269,14 @@ export default function CheckoutPage() {
           </section>
 
           <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-2xl font-semibold text-slate-900">
-                  Payment
-                </h2>
-                <p className="mt-2 text-sm text-slate-500">
-                  Card and school ID checkout are handled in one place.
-                </p>
-              </div>
-              <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
-                Payment options
-              </span>
-            </div>
-
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {[
-                {
-                  id: "card" as const,
-                  title: "Card",
-                  description: "Standard debit or credit card checkout.",
-                },
-                {
-                  id: "campus-charge" as const,
-                  title: "School ID",
-                  description:
-                    "Bill the order to Cowboy Cash using your student ID.",
-                },
-              ].map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => setPaymentMethod(option.id)}
-                  className={`rounded-[24px] border p-5 text-left transition ${
-                    paymentMethod === option.id
-                      ? "border-mcneeseBlue bg-blue-50"
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
-                >
-                  <p className="text-lg font-semibold text-slate-900">
-                    {option.title}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    {option.description}
-                  </p>
-                </button>
-              ))}
-            </div>
-
-            {paymentMethod === "card" && (
-              <div className="mt-6 grid gap-4">
-                <label className="block text-sm font-medium text-slate-700">
-                  Card number
-                  <input
-                    type="text"
-                    value={cardNumber}
-                    onChange={(event) =>
-                      setCardNumber(formatCardNumber(event.target.value))
-                    }
-                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                  />
-                </label>
-
-                <div className="grid gap-4 md:grid-cols-3">
-                  <label className="block text-sm font-medium text-slate-700">
-                    Expiration
-                    <input
-                      type="text"
-                      value={expiration}
-                      onChange={(event) =>
-                        setExpiration(formatExpiration(event.target.value))
-                      }
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                    />
-                  </label>
-                  <label className="block text-sm font-medium text-slate-700">
-                    Security code
-                    <input
-                      type="text"
-                      value={securityCode}
-                      onChange={(event) =>
-                        setSecurityCode(
-                          event.target.value.replace(/\D/g, "").slice(0, 4),
-                        )
-                      }
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                    />
-                  </label>
-                  <label className="block text-sm font-medium text-slate-700">
-                    Billing ZIP
-                    <input
-                      type="text"
-                      value={billingZip}
-                      onChange={(event) =>
-                        setBillingZip(
-                          event.target.value.replace(/\D/g, "").slice(0, 5),
-                        )
-                      }
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                    />
-                  </label>
-                </div>
-
-                <div className="rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
-                  Card details are captured here as part of the final checkout
-                  review.
-                </div>
-              </div>
-            )}
-
-            {paymentMethod === "campus-charge" && (
-              <div className="mt-6 grid gap-4">
-                <label className="block text-sm font-medium text-slate-700">
-                  Student ID
-                  <input
-                    type="text"
-                    value={campusChargeId}
-                    onChange={(event) =>
-                      setCampusChargeId(
-                        event.target.value.replace(/\D/g, "").slice(0, 10),
-                      )
-                    }
-                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                  />
-                </label>
-                <div className="rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
-                  Use your student ID when this order should be billed through
-                  Cowboy Cash.
-                </div>
-              </div>
-            )}
+            <h2 className="text-2xl font-semibold text-slate-900">
+              Payment comes later
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              This site records your order request but does not charge a card or
+              campus account. Payment and availability need to be confirmed
+              separately before pickup or delivery.
+            </p>
 
             <label className="mt-6 flex items-start gap-3 rounded-[24px] bg-slate-50 p-5 text-sm leading-6 text-slate-600">
               <input
@@ -504,8 +286,8 @@ export default function CheckoutPage() {
                 className="mt-1 h-4 w-4 rounded border-slate-300 text-mcneeseBlue focus:ring-mcneeseBlue"
               />
               <span>
-                I reviewed the checkout details and authorize this order to be
-                submitted with the selected payment method.
+                I reviewed the order details and understand no payment is
+                collected here. The request still needs confirmation.
               </span>
             </label>
           </section>
@@ -649,7 +431,7 @@ export default function CheckoutPage() {
 
               <div className="mt-6 rounded-[24px] bg-blue-50 p-5 text-sm leading-6 text-blue-900">
                 {fulfillment === "pickup"
-                  ? `Selected pickup window: ${pickupSlot}`
+                  ? `Preferred pickup window: ${pickupSlot}. We will confirm availability.`
                   : pricing.freeDeliveryRemaining === 0
                     ? "Delivery is free on this order."
                     : `${formatCurrency(
@@ -662,7 +444,7 @@ export default function CheckoutPage() {
                 onClick={handlePlaceOrder}
                 className="mt-8 w-full rounded-full bg-mcneeseBlue px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-800"
               >
-                Place order - {formatCurrency(pricing.total)}
+                Send order request - {formatCurrency(pricing.total)}
               </button>
               <Link
                 to="/cart"

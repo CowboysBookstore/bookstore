@@ -80,3 +80,77 @@ def test_product_create_allows_staff_users(client, product_payload):
 
     assert response.status_code == 201
     assert Product.objects.filter(title="CHEM 101 Lab Manual").exists()
+
+
+@pytest.mark.django_db
+def test_checkout_uses_database_prices_and_product_slugs(client, settings):
+    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+    product = Product.objects.create(
+        slug="eng-101-writing-handbook",
+        title="ENG 101 Writing Handbook",
+        category="Textbooks",
+        price="64.99",
+        stock=4,
+    )
+
+    response = client.post(
+        "/api/products/orders/checkout/",
+        {
+            "fulfillment": "pickup",
+            "pickupSlot": "Tomorrow, 10:00 AM - 12:00 PM",
+            "customer": {
+                "fullName": "Pat Rider",
+                "email": "pat@mcneese.edu",
+                "phone": "3375550100",
+            },
+            "paymentMethod": "pay-at-pickup",
+            "paymentLabel": "Payment at pickup",
+            "subtotal": "0.01",
+            "tax": "0.00",
+            "total": "0.01",
+            "items": [
+                {
+                    "productId": product.slug,
+                    "quantity": 1,
+                    "unitPrice": "0.01",
+                }
+            ],
+        },
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert response.json()["subtotal"] == "64.99"
+    assert response.json()["tax"] == "5.36"
+    assert response.json()["total"] == "70.35"
+    assert response.json()["status"] == "pending"
+    assert response.json()["payment_method"] == "pay-later"
+    assert response.json()["items"][0]["product_slug"] == product.slug
+
+    product.refresh_from_db()
+    assert product.stock == 3
+
+
+@pytest.mark.django_db
+def test_checkout_rejects_duplicate_lines_over_available_stock(client):
+    product = Product.objects.create(
+        slug="limited-notebook",
+        title="Limited Notebook",
+        price="10.00",
+        stock=2,
+    )
+    response = client.post(
+        "/api/products/orders/checkout/",
+        {
+            "fulfillment": "pickup",
+            "customer": {"fullName": "Pat Rider", "email": "pat@mcneese.edu"},
+            "items": [
+                {"productId": product.slug, "quantity": 2},
+                {"productId": product.slug, "quantity": 1},
+            ],
+        },
+        format="json",
+    )
+    assert response.status_code == 400
+    product.refresh_from_db()
+    assert product.stock == 2

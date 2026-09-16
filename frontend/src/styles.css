@@ -4,21 +4,21 @@
 
 :root {
   color: #0f172a;
-  background:
-    radial-gradient(circle at top left, rgba(249, 200, 14, 0.24), transparent 30%),
-    radial-gradient(circle at top right, rgba(0, 51, 160, 0.14), transparent 28%),
-    linear-gradient(180deg, #fffdf5 0%, #f8fafc 100%);
-  font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+  background: #f7f8fa;
+  font-family: "Inter", Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: transparent;
+  background: #f7f8fa;
 }
 
 * {
   box-sizing: border-box;
+  letter-spacing: 0 !important;
 }
 
 a {
@@ -32,8 +32,17 @@ textarea {
   font: inherit;
 }
 
-input:focus {
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible,
+a:focus-visible {
   outline: none;
+}
+
+button:focus-visible,
+a:focus-visible {
+  box-shadow: 0 0 0 3px rgba(0, 51, 160, 0.2);
 }
 
 ::selection {
@@ -73,4 +82,39 @@ input:focus {
 
 .animate-drift {
   animation: drift 6s ease-in-out infinite;
+}
+
+/* Keep utility-heavy legacy screens in the same restrained visual system. */
+.rounded-\[36px\],
+.rounded-\[32px\],
+.rounded-\[30px\],
+.rounded-\[28px\],
+.rounded-\[26px\],
+.rounded-\[24px\],
+.rounded-\[22px\],
+.rounded-\[20px\],
+.rounded-\[18px\],
+.rounded-2xl {
+  border-radius: 0.5rem !important;
+}
+
+button.rounded-full,
+a.rounded-full {
+  border-radius: 0.5rem !important;
+}
+
+.text-4xl {
+  font-size: 1.875rem !important;
+  line-height: 2.25rem !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

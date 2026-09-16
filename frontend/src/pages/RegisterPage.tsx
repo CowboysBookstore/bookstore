@@ -35,8 +35,12 @@ export default function RegisterPage() {
     }
     setLoading(true);
     try {
-      await api.register(form);
-      navigate("/verify", { state: { email: form.email } });
+      const result = await api.register(form);
+      navigate(result.activation_required ? "/verify" : "/login", {
+        state: result.activation_required
+          ? { email: form.email }
+          : { registered: true },
+      });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Registration failed.");
     } finally {
@@ -45,7 +49,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <AuthLayout title="Create your account" subtitle="Use your McNeese email to get started">
+    <AuthLayout title="Create your account" subtitle="Use your McNeese email so your orders stay connected to you.">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -53,7 +57,7 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">
               First name
@@ -63,7 +67,7 @@ export default function RegisterPage() {
               value={form.first_name}
               onChange={set("first_name")}
               placeholder="Pat"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/20"
+              className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-blue-100"
             />
           </div>
           <div>
@@ -75,7 +79,7 @@ export default function RegisterPage() {
               value={form.last_name}
               onChange={set("last_name")}
               placeholder="Rider"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/20"
+              className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-blue-100"
             />
           </div>
         </div>
@@ -90,7 +94,7 @@ export default function RegisterPage() {
             value={form.email}
             onChange={set("email")}
             placeholder="you@mcneese.edu"
-            className={`w-full rounded-lg border px-3 py-2.5 text-sm transition focus:ring-2 focus:ring-mcneeseBlue/20 ${
+            className={`h-11 w-full rounded-lg border px-3 text-sm transition focus:ring-2 focus:ring-blue-100 ${
               emailBad
                 ? "border-red-400 focus:border-red-400"
                 : "border-slate-300 focus:border-mcneeseBlue"
@@ -137,7 +141,7 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading || emailBad || passwordMismatch}
-          className="w-full rounded-lg bg-mcneeseBlue py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:opacity-50"
+          className="h-11 w-full rounded-lg bg-mcneeseBlue text-sm font-bold text-white transition hover:bg-blue-800 disabled:opacity-50"
         >
           {loading ? "Creating account…" : "Create account"}
         </button>

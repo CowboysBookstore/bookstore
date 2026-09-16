@@ -1,8 +1,9 @@
+import { ArrowUpRight, Heart, ShoppingCart, Star } from "lucide-react";
 import { Link } from "react-router-dom";
-import ProductImage from "./ProductImage";
-import { formatCurrency } from "../storefront/utils";
 import { useStorefront } from "../storefront/StorefrontContext";
 import type { Product } from "../storefront/types";
+import { formatCurrency } from "../storefront/utils";
+import ProductImage from "./ProductImage";
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart, toggleWishlist, wishlist, cart } = useStorefront();
@@ -11,102 +12,81 @@ export default function ProductCard({ product }: { product: Product }) {
     cart.find((item) => item.productId === product.id)?.quantity ?? 0;
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-      <ProductImage
-        product={product}
-        className="h-48 p-5 text-white"
-        overlayClassName="bg-gradient-to-b from-slate-950/10 via-slate-950/10 to-slate-950/75"
-      >
-        <div className="flex h-full flex-col justify-between">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex flex-wrap gap-2">
-              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/95">
-                {product.category}
-              </span>
-              {cartQuantity > 0 && (
-                <span className="rounded-full bg-black/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
-                  In cart: {cartQuantity}
-                </span>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => toggleWishlist(product.id)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                isWishlisted
-                  ? "bg-white text-slate-900"
-                  : "bg-black/15 text-white hover:bg-black/25"
-              }`}
-            >
-              {isWishlisted ? "Saved" : "Wishlist"}
-            </button>
-          </div>
-          <div className="max-w-[15rem]">
-            <p className="text-xs uppercase tracking-[0.24em] text-white/70">
-              {product.badge}
-            </p>
-            <h3 className="mt-2 text-2xl font-semibold leading-tight">
-              {product.title}
-            </h3>
-          </div>
-        </div>
-      </ProductImage>
+    <article className="group flex h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+      <div className="relative">
+        <Link to={`/products/${product.id}`} aria-label={`View ${product.title}`}>
+          <ProductImage
+            product={product}
+            className="h-52 bg-slate-100"
+            imageClassName="transition duration-300 group-hover:scale-[1.02]"
+            overlayClassName="bg-transparent"
+          />
+        </Link>
+        <span className="absolute left-3 top-3 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-slate-700 shadow-sm">
+          {product.category}
+        </span>
+        <button
+          type="button"
+          onClick={() => toggleWishlist(product.id)}
+          aria-pressed={isWishlisted}
+          aria-label={isWishlisted ? `Remove ${product.title} from wishlist` : `Save ${product.title} to wishlist`}
+          title={isWishlisted ? "Remove from wishlist" : "Save to wishlist"}
+          className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-lg border shadow-sm transition ${
+            isWishlisted
+              ? "border-rose-200 bg-rose-50 text-rose-600"
+              : "border-white bg-white/95 text-slate-600 hover:text-rose-600"
+          }`}
+        >
+          <Heart size={18} fill={isWishlisted ? "currentColor" : "none"} />
+        </button>
+      </div>
 
-      <div className="flex flex-1 flex-col justify-between p-5">
-        <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-1 flex-col p-5">
+        <div className="flex items-center justify-between gap-3 text-xs">
+          <span className="font-bold text-amber-700">{product.badge}</span>
+          <span className="inline-flex items-center gap-1 font-semibold text-slate-500">
+            <Star size={14} className="fill-amber-400 text-amber-400" />
+            {product.rating.toFixed(1)}
+          </span>
+        </div>
+
+        <Link to={`/products/${product.id}`} className="mt-3 no-underline">
+          <h3 className="text-lg font-bold leading-6 text-[#071b33] transition group-hover:text-mcneeseBlue">
+            {product.title}
+          </h3>
+        </Link>
+        <p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-600">
+          {product.shortDescription}
+        </p>
+
+        <div className="mt-4 flex items-end justify-between gap-3">
           <div>
-            <p className="text-sm text-slate-500">{product.shortDescription}</p>
-            <p className="mt-2 text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
-              {product.format}
-              {product.course ? ` - ${product.course}` : ""}
+            <p className="text-xl font-bold text-slate-950">
+              {formatCurrency(product.price)}
+            </p>
+            <p className="mt-1 text-xs font-medium text-emerald-700">
+              {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
             </p>
           </div>
-          <p className="text-lg font-semibold text-slate-900">
-            <span className="inline-block rounded-full bg-mcneeseGold px-3 py-1 text-sm font-semibold text-slate-900">
-              {formatCurrency(product.price)}
-            </span>
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {product.highlights.slice(0, 2).map((highlight) => (
-            <span
-              key={highlight}
-              className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
-            >
-              {highlight}
-            </span>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-3">
           <Link
             to={`/products/${product.id}`}
-            className="flex-1 rounded-full border border-slate-200 px-4 py-2 text-center text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-mcneeseBlue"
+            aria-label={`Open details for ${product.title}`}
+            title="View details"
           >
-            View details
+            <ArrowUpRight size={18} />
           </Link>
-
-          <button
-            type="button"
-            onClick={() => toggleWishlist(product.id)}
-            aria-pressed={isWishlisted}
-            className={`h-10 w-10 flex-shrink-0 rounded-full border border-slate-200 transition flex items-center justify-center text-sm font-semibold ${
-              isWishlisted ? "bg-mcneeseGold text-slate-900" : "bg-white text-slate-700 hover:bg-slate-50"
-            }`}
-            title={isWishlisted ? "Saved" : "Add to wishlist"}
-          >
-            {isWishlisted ? "♥" : "♡"}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => addToCart(product.id)}
-            className="flex-1 rounded-full bg-mcneeseBlue px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-800"
-          >
-            {cartQuantity > 0 ? "Add another" : "Add to cart"}
-          </button>
         </div>
+
+        <button
+          type="button"
+          onClick={() => addToCart(product.id)}
+          disabled={product.stock === 0}
+          className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-mcneeseBlue px-4 text-sm font-bold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+        >
+          <ShoppingCart size={17} aria-hidden="true" />
+          {cartQuantity > 0 ? `Add another · ${cartQuantity} in cart` : "Add to cart"}
+        </button>
       </div>
     </article>
   );

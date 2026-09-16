@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
 import PasswordInput from "../components/PasswordInput";
-import { api } from "../storefront/client";
+import { api, setAuthTokens } from "../storefront/client";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,8 +18,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const tokens = await api.login({ email, password });
-      sessionStorage.setItem("access", tokens.access);
-      sessionStorage.setItem("refresh", tokens.refresh);
+      setAuthTokens(tokens.access, tokens.refresh);
       navigate("/");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unable to sign in.");
@@ -28,8 +28,23 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthLayout title="Sign in" subtitle="Use your McNeese account">
+    <AuthLayout title="Welcome back" subtitle="Sign in with your McNeese email to see your orders and finish checkout faster.">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {(location.state as { registered?: boolean; verified?: boolean; reset?: boolean } | null)?.registered && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            Your account is ready. Sign in to continue.
+          </div>
+        )}
+        {(location.state as { registered?: boolean; verified?: boolean; reset?: boolean } | null)?.verified && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            Your email is verified. You can sign in now.
+          </div>
+        )}
+        {(location.state as { registered?: boolean; verified?: boolean; reset?: boolean } | null)?.reset && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            Your password has been updated.
+          </div>
+        )}
         {error && (
           <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
@@ -46,7 +61,7 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@mcneese.edu"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/20"
+            className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-blue-100"
           />
         </div>
 
@@ -73,7 +88,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-mcneeseBlue py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:opacity-50"
+          className="h-11 w-full rounded-lg bg-mcneeseBlue text-sm font-bold text-white transition hover:bg-blue-800 disabled:opacity-50"
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>

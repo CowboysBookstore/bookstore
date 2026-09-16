@@ -1,154 +1,66 @@
 # Cowboy Online Bookstore
 
-Authentication system for the McNeese State University campus bookstore.
+A team-built McNeese bookstore project with a React storefront and a Django REST API. Browse 36 products, search by course or category, save a wishlist, and submit an order request for pickup or delivery. The server owns prices, discounts, tax, and stock checks; browser-submitted totals are never trusted.
+
+- [Live storefront](https://cowboy-online-bookstore.vercel.app/)
+- [API health](https://cowboy-bookstore-api.vercel.app/api/health/)
+- [Product API](https://cowboy-bookstore-api.vercel.app/api/products/)
 
 ## Stack
 
-| Layer    | Tech                                          |
-| -------- | --------------------------------------------- |
-| Backend  | Python 3.11, Django 4.2, Django REST, PyJWT   |
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS      |
-| Database | SQLite (dev) — MySQL/Postgres planned for prod |
+React 18, TypeScript, Vite, Tailwind CSS, Django 4.2, Django REST Framework, JWT, PostgreSQL (Neon in production), Vercel, Vitest, and pytest. Local development uses SQLite unless `DATABASE_URL` is set.
 
-## Project layout
+## Run locally
 
-```
-bookstore/
-├── backend/          Django project + accounts app (models, views, serializers, JWT, tests)
-├── frontend/         Vite React + TypeScript + Tailwind (auth pages, components, tests)
-├── .env.example      Template for secrets — copy to .env and fill in
-├── .github/workflows CI pipelines (lint + test for backend and frontend)
+Use Python 3.12 and Node.js 18 or newer. In one terminal:
 
-## Getting started — quick and reliable (few commands)
-
-These instructions get a developer up and running quickly without surprises. They cover both Docker and local developer flows. The app uses SQLite for development so you don't need a separate DB service.
-
-Prereqs
-- Docker Desktop (macOS / Windows) OR
-- Python 3.11+ and Node 18+ (if running locally)
-
-1) Clone the repo
-
-```zsh
-git clone https://github.com/CowboysBookstore/bookstore.git
-cd bookstore
-```
-
-2) Copy the env template and edit (required)
-
-```zsh
-cp .env.example .env
-# Open .env and set at least DJANGO_SECRET_KEY. Optionally set EMAIL_* and STRIPE_* for SMTP/Stripe tests.
-```
-
-Quick start — Docker (recommended)
-
-```zsh
-# build and start backend + frontend (first run may take a minute)
-docker compose up --build
-```
-
-What this does
-- Runs migrations automatically for the backend.
-- Serves backend on http://localhost:8000 and frontend on http://localhost:5173 (Vite dev server + proxy).
-
-Seed the product catalog (one-time)
-
-```zsh
-# in a separate terminal (or inside the backend container)
-docker compose exec backend python manage.py seed_products
-```
-
-Optional: create a superuser inside the backend container
-
-```zsh
-docker compose exec backend python manage.py createsuperuser
-```
-
-Shutting down
-
-```zsh
-docker compose down
-```
-
-Local dev (no Docker)
-
-Backend
-
-```zsh
+```bash
 cd backend
-python3.11 -m venv .venv
-source .venv/bin/activate
+python -m venv .venv
+# Activate .venv using your shell's command.
 pip install -r requirements.txt
-cp ../.env.example ../.env
-# edit ../.env
 python manage.py migrate
 python manage.py seed_products
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver
 ```
 
-Frontend (separate terminal)
+In another terminal:
 
-```zsh
+```bash
 cd frontend
 npm ci
-npm run dev -- --host 0.0.0.0
+npm run dev
 ```
 
-Notes and troubleshooting
-- If the frontend doesn't show backend data, restart the frontend dev server so Vite picks up `vite.config.ts` (the dev proxy). Stop the server and run `npm run dev` again.
-- If you get CORS or 401 errors when calling `/api`, open DevTools Network and share the request/response — I'll help diagnose quickly.
-- Email: by default verification/reset codes print to the backend terminal. To enable real emails, set `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend` and fill SMTP fields in `.env`.
+The frontend runs at `http://localhost:5173` and proxies `/api` to the Django server at `http://localhost:8000`. The catalog seed can safely be rerun; it updates products by slug without duplicating them.
 
-Running tests
+## Tests
 
 ```bash
-# Backend (from repo/backend, with venv active)
-cd backend && pytest
-
-# Frontend (from repo/frontend)
-cd frontend && npm run test
+cd backend
+pytest
+python manage.py check
+python manage.py makemigrations --check --dry-run
 ```
-cd backend && pytest
-
-# Frontend (from repo root)
-cd frontend && npm run test
-```
-
-## Code style
 
 ```bash
-# Check Python formatting
-cd backend && black --check .
-
-# Auto-format Python
-cd backend && black .
-
-# Lint frontend
-cd frontend && npm run lint
+cd frontend
+npm test
+npm run lint
+npx tsc --noEmit
+npm run build
 ```
 
----
+## Production setup
 
-## Auth API endpoints
+The `backend/` and `frontend/` folders are separate Vercel projects. The backend uses Vercel's Django preset and Python 3.12; the frontend uses Vite. Connect a PostgreSQL database to the backend and set `DATABASE_URL`, `DJANGO_SECRET_KEY`, `JWT_SIGNING_KEY`, `DJANGO_DEBUG=False`, and `CORS_ALLOWED_ORIGINS=https://cowboy-online-bookstore.vercel.app`. Set the frontend's `VITE_API_BASE_URL=https://cowboy-bookstore-api.vercel.app`. Then run Django migrations and `seed_products` against the connected database before deployment.
 
-All endpoints are under `/api/auth/`.
+The Vercel projects are currently deployed through the CLI. The team organization's GitHub repository is not connected to Vercel's Git integration, so pushing to GitHub alone does not publish a new version. Deploy each changed project from its directory with `vercel deploy --prod` until repository access is granted to the Vercel GitHub app.
 
-| Method | Path                     | Body                                              | Description                         |
-| ------ | ------------------------ | ------------------------------------------------- | ----------------------------------- |
-| POST   | `/api/auth/register/`    | first_name, last_name, email, password            | Register (only @mcneese.edu emails) |
-| POST   | `/api/auth/verify/`      | email, code                                       | Verify account with 6-digit code    |
-| POST   | `/api/auth/login/`       | email, password                                   | Returns JWT access + refresh tokens |
-| POST   | `/api/auth/forgot-password/` | email                                          | Sends a 6-digit reset code via email |
-| POST   | `/api/auth/reset-password/`  | email, code, new_password                      | Resets the password                  |
+## Accounts and orders
 
-## Email in development
+Registration accepts `@mcneese.edu` addresses and normally requires an emailed verification code. Configure a real email backend (`EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL`) before enabling public registration or password recovery. With the console email backend, those endpoints return 503 rather than claiming to send a code that nobody can receive. Existing activated users can still sign in.
 
-Set `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend` in `.env` and fill in SMTP credentials to send real emails. Otherwise codes only print in the Django terminal.
+Checkout records a **pending request**, not a paid purchase. It does not collect card numbers or charge Cowboy Cash. Pickup preferences, delivery details, and stock must still be confirmed separately. Do not describe the order as paid, shipped, or ready before a fulfillment process and payment provider are connected.
 
-## CI
-
-GitHub Actions run on every push and PR:
-
-- **Backend CI** — `black --check` + `pytest`
-- **Frontend CI** — `eslint` + `vitest`
+API routes are under `/api/auth/` and `/api/products/`. The `/api/health/` endpoint checks database connectivity. Keep `.env` files, Vercel local credentials, and database URLs out of Git.

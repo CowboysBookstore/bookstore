@@ -14,8 +14,10 @@ export default function ForgotPasswordPage() {
     setError("");
     setLoading(true);
     try {
-      await api.forgotPassword({ email });
-      navigate("/reset-password", { state: { email } });
+      const result = await api.forgotPassword({ email });
+      navigate("/reset-password", {
+        state: { email, code: result.reset_code || "" },
+      });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Could not send reset code.");
     } finally {
@@ -26,7 +28,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthLayout
       title="Reset your password"
-      subtitle="We'll send a code to your McNeese email"
+      subtitle="Enter the McNeese email connected to your account."
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
@@ -45,14 +47,14 @@ export default function ForgotPasswordPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@mcneese.edu"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/20"
+            className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-blue-100"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-mcneeseBlue py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:opacity-50"
+          className="h-11 w-full rounded-lg bg-mcneeseBlue text-sm font-bold text-white transition hover:bg-blue-800 disabled:opacity-50"
         >
           {loading ? "Sending…" : "Send reset code"}
         </button>

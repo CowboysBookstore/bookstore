@@ -8,9 +8,10 @@ export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const passedEmail = (location.state as { email?: string })?.email || "";
+  const passedCode = (location.state as { code?: string })?.code || "";
 
   const [email, setEmail] = useState(passedEmail);
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(passedCode);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");

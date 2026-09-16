@@ -19,6 +19,10 @@ DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
 ALLOWED_HOSTS: list[str] = os.getenv(
     "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1"
 ).split(",")
+for vercel_host_key in ("VERCEL_URL", "VERCEL_PROJECT_PRODUCTION_URL"):
+    vercel_host = os.getenv(vercel_host_key, "").strip()
+    if vercel_host and vercel_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(vercel_host)
 
 INSTALLED_APPS = [
     "unfold",
@@ -68,11 +72,16 @@ TEMPLATES = [
 WSGI_APPLICATION = "backend.wsgi.application"
 
 # Database configuration - supports both local SQLite and production PostgreSQL
-if os.getenv('DATABASE_URL'):
-    # Production: use PostgreSQL via DATABASE_URL (Render provides this)
+if os.getenv("DATABASE_URL"):
+    # Serverless deployments use a pooled PostgreSQL connection string.
     import dj_database_url
+
     DATABASES = {
-        'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+        "default": dj_database_url.config(
+            default=os.getenv("DATABASE_URL"),
+            conn_max_age=0,
+            ssl_require=not DEBUG,
+        )
     }
 else:
     # Development: use SQLite
@@ -146,7 +155,10 @@ CORS_ALLOWED_ORIGINS = [
     o.strip()
     for o in os.getenv(
         "CORS_ALLOWED_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173",
+        (
+            "http://localhost:5173,http://127.0.0.1:5173,"
+            "https://cowboy-online-bookstore.vercel.app"
+        ),
     ).split(",")
     if o.strip()
 ]
@@ -158,10 +170,16 @@ if _cors_regex:
 
 # Reasonable default for Render if you don't set anything:
 # allow any *.onrender.com frontends.
-if not _cors_regex and all("onrender.com" not in o for o in CORS_ALLOWED_ORIGINS):
-    CORS_ALLOWED_ORIGIN_REGEXES = [r"^https://.*\.onrender\.com$"]
+if not _cors_regex:
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r"^https://cowboy-online-bookstore(?:-[a-z0-9-]+)?\.vercel\.app$",
+        r"^https://.*\.onrender\.com$",
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 UNFOLD = {
     "SITE_TITLE": "Cowboy Bookstore",

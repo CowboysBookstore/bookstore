@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import StorefrontLayout from "../components/StorefrontLayout";
 import { storefrontCategories } from "../storefront/data";
@@ -8,19 +10,27 @@ type CategoryFilter = (typeof storefrontCategories)[number];
 
 export default function ProductsPage() {
   const { products } = useStorefront();
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<CategoryFilter>("All");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedCategory = searchParams.get("category") || "All";
+  const initialCategory = storefrontCategories.includes(
+    requestedCategory as CategoryFilter,
+  )
+    ? (requestedCategory as CategoryFilter)
+    : "All";
+  const [query, setQuery] = useState(searchParams.get("q") || "");
+  const [category, setCategory] = useState<CategoryFilter>(initialCategory);
   const [sort, setSort] = useState("featured");
 
-  const filteredProducts = products
-    .filter((product) => {
-      const matchesCategory =
-        category === "All" ? true : product.category === category;
-      const search = query.trim().toLowerCase();
-      const matchesQuery =
-        search === ""
-          ? true
-          : [
+  const filteredProducts = useMemo(
+    () =>
+      products
+        .filter((product) => {
+          const matchesCategory =
+            category === "All" || product.category === category;
+          const search = query.trim().toLowerCase();
+          const matchesQuery =
+            !search ||
+            [
               product.title,
               product.category,
               product.course ?? "",
@@ -30,106 +40,132 @@ export default function ProductsPage() {
               .join(" ")
               .toLowerCase()
               .includes(search);
+          return matchesCategory && matchesQuery;
+        })
+        .sort((left, right) => {
+          if (sort === "price-low") return left.price - right.price;
+          if (sort === "price-high") return right.price - left.price;
+          if (sort === "rating") return right.rating - left.rating;
+          return 0;
+        }),
+    [category, products, query, sort],
+  );
 
-      return matchesCategory && matchesQuery;
-    })
-    .sort((left, right) => {
-      if (sort === "price-low") {
-        return left.price - right.price;
-      }
+  const chooseCategory = (nextCategory: CategoryFilter) => {
+    setCategory(nextCategory);
+    const next = new URLSearchParams(searchParams);
+    if (nextCategory === "All") next.delete("category");
+    else next.set("category", nextCategory);
+    setSearchParams(next, { replace: true });
+  };
 
-      if (sort === "price-high") {
-        return right.price - left.price;
-      }
-
-      if (sort === "rating") {
-        return right.rating - left.rating;
-      }
-
-      return 0;
-    });
+  const clearFilters = () => {
+    setQuery("");
+    setCategory("All");
+    setSort("featured");
+    setSearchParams({}, { replace: true });
+  };
 
   return (
     <StorefrontLayout>
-      <section className="animate-rise rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+      <section className="border-b border-slate-200 pb-7">
+        <p className="text-sm font-bold text-mcneeseBlue">Shop the catalog</p>
+        <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mcneeseBlue">
-              Products
-            </p>
-            <h1 className="mt-3 text-4xl font-semibold text-slate-900">
-              Browse products
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-              Browse textbooks, office supplies, tech accessories, and McNeese
-              gear. Use the search box and sort controls to narrow results.
+            <h1 className="text-3xl font-bold text-[#071b33]">Find what you need</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Search by course, product, or category. Pickup is free, and stock
+              counts update as orders are placed.
             </p>
           </div>
+          <p className="text-sm font-semibold text-slate-500">
+            {filteredProducts.length} of {products.length} products
+          </p>
+        </div>
+      </section>
 
-          <div className="rounded-[28px] bg-slate-50 p-5">
-            <div className="grid gap-4 md:grid-cols-[1fr_160px]">
-              <label className="block text-sm font-medium text-slate-700">
-                Search
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Try nursing, notebook, charger..."
-                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                />
-              </label>
-              <label className="block text-sm font-medium text-slate-700">
-                Sort
-                <select
-                  value={sort}
-                  onChange={(event) => setSort(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm transition focus:border-mcneeseBlue focus:ring-2 focus:ring-mcneeseBlue/10"
-                >
-                  <option value="featured">Featured</option>
-                  <option value="price-low">Price: low to high</option>
-                  <option value="price-high">Price: high to low</option>
-                  <option value="rating">Highest rated</option>
-                </select>
-              </label>
-            </div>
+      <section className="sticky top-[121px] z-20 -mx-4 border-b border-slate-200 bg-[#f7f8fa]/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6 md:top-[129px]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 lg:flex-row lg:items-center">
+          <label className="relative block flex-1">
+            <span className="sr-only">Search products</span>
+            <Search
+              size={18}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search by title, course, or item..."
+              className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-4 text-sm focus:border-mcneeseBlue focus:ring-2 focus:ring-blue-100"
+            />
+          </label>
+
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal size={17} className="hidden text-slate-400 sm:block" />
+            <label className="sr-only" htmlFor="catalog-sort">
+              Sort products
+            </label>
+            <select
+              id="catalog-sort"
+              value={sort}
+              onChange={(event) => setSort(event.target.value)}
+              className="h-11 min-w-44 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 focus:border-mcneeseBlue focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="featured">Featured first</option>
+              <option value="price-low">Lowest price</option>
+              <option value="price-high">Highest price</option>
+              <option value="rating">Highest rated</option>
+            </select>
           </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center gap-3">
+        <div className="mx-auto mt-3 flex max-w-7xl gap-2 overflow-x-auto pb-1">
           {storefrontCategories.map((option) => (
             <button
               key={option}
               type="button"
-              onClick={() => setCategory(option)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+              onClick={() => chooseCategory(option)}
+              className={`shrink-0 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
                 category === option
-                  ? "bg-mcneeseBlue text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "border-mcneeseBlue bg-mcneeseBlue text-white"
+                  : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"
               }`}
             >
               {option}
             </button>
           ))}
-          <p className="ml-auto text-sm text-slate-500">
-            Use search and category filters to narrow the catalog.
-          </p>
+          {(query || category !== "All" || sort !== "featured") && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-white hover:text-slate-900"
+            >
+              <X size={15} /> Clear
+            </button>
+          )}
         </div>
       </section>
 
-      <section className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3 items-stretch">
-        {filteredProducts.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </section>
-
-      {filteredProducts.length === 0 && (
-        <section className="mt-8 rounded-[28px] border border-dashed border-slate-300 bg-white px-6 py-10 text-center shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-900">
-            No products found
-          </h2>
-          <p className="mt-3 text-sm text-slate-500">
-            Try a different keyword or switch the category filter back to All.
+      {filteredProducts.length > 0 ? (
+        <section className="mt-7 grid items-stretch gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {filteredProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </section>
+      ) : (
+        <section className="mt-12 border-y border-slate-200 py-14 text-center">
+          <h2 className="text-2xl font-bold text-slate-900">No matching products</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            Try a shorter search or clear the category filter.
           </p>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="mt-5 rounded-lg bg-mcneeseBlue px-5 py-3 text-sm font-bold text-white hover:bg-blue-800"
+          >
+            Show the full catalog
+          </button>
         </section>
       )}
     </StorefrontLayout>

@@ -15,9 +15,19 @@ class PromoCodeSerializer(serializers.ModelSerializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     """Serializer for individual items within an order."""
+    product_slug = serializers.CharField(source="product.slug", read_only=True)
+
     class Meta:
         model = OrderItem
-        fields = ["product", "title", "category", "quantity", "unit_price", "line_total"]
+        fields = [
+            "product",
+            "product_slug",
+            "title",
+            "category",
+            "quantity",
+            "unit_price",
+            "line_total",
+        ]
         read_only_fields = ["title", "category", "unit_price", "line_total"] # These are set from product at order creation
 
 

@@ -20,12 +20,12 @@ export default function OrdersPage() {
     <StorefrontLayout>
       <section className="animate-rise rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mcneeseBlue">
-          Order confirmation
+          Order requests
         </p>
         <h1 className="mt-3 text-4xl font-semibold text-slate-900">Recent orders</h1>
         <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">
-          The order page now doubles as a confirmation hub, giving students a clear
-          success state after checkout plus a richer history of prior purchases.
+          Keep track of the items you have requested. A submitted order still
+          needs availability and payment arrangements confirmed.
         </p>
       </section>
 
@@ -34,13 +34,13 @@ export default function OrdersPage() {
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                Order placed successfully
+                Request received
               </p>
               <h2 className="mt-2 text-3xl font-semibold">{latestOrder.id}</h2>
               <p className="mt-3 text-sm leading-6 text-emerald-900">
                 Submitted {formatOrderDateTime(latestOrder.placedAt)} for{" "}
-                {latestOrder.customer.fullName}. Payment was captured with{" "}
-                {latestOrder.paymentLabel.toLowerCase()}.
+                {latestOrder.customer.fullName}. No payment has been collected.
+                We will need to confirm availability and the next steps.
               </p>
               <p className="mt-3 text-sm leading-6 text-emerald-900">
                 {latestOrder.fulfillment === "pickup"
@@ -51,7 +51,7 @@ export default function OrdersPage() {
 
             <div className="rounded-[24px] bg-white/70 px-5 py-4 text-right">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
-                Charged total
+                Estimated total
               </p>
               <p className="mt-2 text-3xl font-semibold">
                 {formatCurrency(latestOrder.total)}

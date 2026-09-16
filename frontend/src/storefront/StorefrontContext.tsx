@@ -1,5 +1,10 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { apiClient, api } from "./client"; // Import both apiClient and the 'api' object
+import {
+  apiClient,
+  api,
+  AUTH_CHANGED_EVENT,
+  isSignedIn,
+} from "./client";
 import { seededOrders } from "./data";
 import type {
   CartItem,
@@ -32,6 +37,41 @@ import { storefrontProducts } from "./data"; // Use standard ES module import
 const fallbackProductsById = new Map( 
   storefrontProducts.map((product) => [product.id, product]),
 );
+const fallbackProductsByTitle = new Map(
+  storefrontProducts.map((product) => [product.title, product]),
+);
+
+function mapBackendOrder(order: any): OrderRecord {
+  return {
+    id: String(order.id),
+    placedAt: order.placed_at,
+    status: order.status,
+    fulfillment: order.fulfillment_method,
+    subtotal: Number(order.subtotal),
+    tax: Number(order.tax),
+    discount: Number(order.discount),
+    fulfillmentFee: Number(order.fulfillment_fee),
+    total: Number(order.total),
+    pickupSlot: order.pickup_slot || undefined,
+    deliveryAddress: order.delivery_address || undefined,
+    deliveryInstructions: order.delivery_instructions || undefined,
+    customer: {
+      fullName: order.customer_full_name,
+      email: order.customer_email,
+      phone: order.customer_phone,
+    },
+    paymentMethod: order.payment_method,
+    paymentLabel: order.payment_label,
+    promoCode: order.promo_code_details?.code || undefined,
+    items: (order.items || []).map((item: any) => ({
+      productId: item.product_slug || String(item.product),
+      title: item.title,
+      quantity: item.quantity,
+      unitPrice: Number(item.unit_price),
+      category: item.category,
+    })),
+  };
+}
 
 interface PromoCodeResult {
   success: boolean;
@@ -170,7 +210,9 @@ export function StorefrontProvider({
 
         const apiProducts = productsFromApi.map((product: any) => {
           const productId = product.slug || String(product.id);
-          const fallbackProduct = fallbackProductsById.get(productId);
+          const fallbackProduct =
+            fallbackProductsById.get(productId) ||
+            fallbackProductsByTitle.get(product.title);
           return {
             id: productId,
             title: product.title,
@@ -203,6 +245,26 @@ export function StorefrontProvider({
       mounted = false;
     };
   }, []);
+
+  const loadAccountOrders = useCallback(() => {
+    if (!isSignedIn()) {
+      return;
+    }
+
+    api.listOrders()
+      .then((ordersFromApi: any[]) => {
+        setOrders(ordersFromApi.map(mapBackendOrder));
+      })
+      .catch(() => {
+        // Keep orders already placed during this browser session.
+      });
+  }, [setOrders]);
+
+  useEffect(() => {
+    loadAccountOrders();
+    window.addEventListener(AUTH_CHANGED_EVENT, loadAccountOrders);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, loadAccountOrders);
+  }, [loadAccountOrders]);
 
   const getProduct = (productId: string) =>
     products.find((product) => product.id === productId);
@@ -456,7 +518,7 @@ export function StorefrontProvider({
 
     try {
       const response = await apiClient.post("/api/products/orders/checkout/", orderPayload);
-      const newOrder: OrderRecord = response.data; // Backend returns the created order
+      const newOrder = mapBackendOrder(response.data);
       setOrders((current) => [newOrder, ...current]);
       setCart([]);
       setAppliedPromoCode(null);

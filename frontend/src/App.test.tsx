@@ -12,7 +12,7 @@ describe("App", () => {
     );
     expect(
       screen.getByRole("heading", {
-        name: /Course materials, ready to order/i,
+        name: /Everything you need, without the campus runaround/i,
       }),
     ).toBeInTheDocument();
   });
@@ -24,7 +24,7 @@ describe("App", () => {
       </MemoryRouter>,
     );
     expect(
-      screen.getByRole("heading", { name: /Browse products/i }),
+      screen.getByRole("heading", { name: /Find what you need/i }),
     ).toBeInTheDocument();
   });
 
@@ -39,7 +39,7 @@ describe("App", () => {
     ).toBeInTheDocument();
   });
 
-  it("places an order from checkout when the cart has items", () => {
+  it("places an order from checkout when the cart has items", async () => {
     window.sessionStorage.setItem(
       "bookstore.cart",
       JSON.stringify([{ productId: "eng-101-writing-handbook", quantity: 1 }]),
@@ -51,10 +51,19 @@ describe("App", () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByLabelText(/I reviewed the checkout details/i));
-    fireEvent.click(screen.getByRole("button", { name: /Place order/i }));
+    fireEvent.change(screen.getByRole("textbox", { name: /Full name/i }), {
+      target: { value: "Pat Rider" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: /^Email$/i }), {
+      target: { value: "pat@mcneese.edu" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: /^Phone$/i }), {
+      target: { value: "3375550100" },
+    });
+    fireEvent.click(screen.getByLabelText(/I reviewed the order details/i));
+    fireEvent.click(screen.getByRole("button", { name: /Send order request/i }));
 
-    expect(screen.getByText(/Order placed successfully/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Request received/i)).toBeInTheDocument();
   });
 
   it("requires a delivery address before placing a delivery order", () => {
@@ -71,9 +80,9 @@ describe("App", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /^Delivery\b/i }));
     fireEvent.click(
-      screen.getByLabelText(/I reviewed the checkout details and authorize/i),
+      screen.getByLabelText(/I reviewed the order details/i),
     );
-    fireEvent.click(screen.getByRole("button", { name: /Place order/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Send order request/i }));
 
     expect(
       screen.getByText(/Enter a delivery address to continue/i),
@@ -88,7 +97,7 @@ describe("App", () => {
     );
     expect(
       screen.getByRole("heading", {
-        name: /Course materials, ready to order/i,
+        name: /Everything you need, without the campus runaround/i,
       }),
     ).toBeInTheDocument();
   });

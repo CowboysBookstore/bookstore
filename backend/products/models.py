@@ -1,18 +1,40 @@
 from django.db import models
 from django.conf import settings
+from django.utils.text import slugify
 
 
 class Product(models.Model):
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255, blank=True)
+    short_description = models.CharField(max_length=512, blank=True, default="")
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     image_url = models.URLField(max_length=500, blank=True)
     category = models.CharField(max_length=100, blank=True)
+    badge = models.CharField(max_length=64, blank=True, default="")
+    course = models.CharField(max_length=64, blank=True, default="")
+    format = models.CharField(max_length=64, blank=True, default="")
     stock = models.IntegerField(default=0)
+    rating = models.FloatField(default=4.5)
+    pickup_note = models.CharField(max_length=255, blank=True, default="")
+    delivery_note = models.CharField(max_length=255, blank=True, default="")
+    highlights = models.JSONField(blank=True, default=list)
+    cover_gradient = models.CharField(max_length=255, blank=True, default="")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.title) or "product"
+            candidate = base_slug
+            suffix = 2
+            while Product.objects.exclude(pk=self.pk).filter(slug=candidate).exists():
+                candidate = f"{base_slug}-{suffix}"
+                suffix += 1
+            self.slug = candidate
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return self.title

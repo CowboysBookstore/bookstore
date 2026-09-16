@@ -235,7 +235,7 @@ def send_order_confirmation_email(email: str, order) -> None:
     """Send order confirmation email to customer."""
     from django.utils.dateformat import format as dateformat
     
-    subject = f"Cowboy Bookstore — Order #{order.id} confirmed"
+    subject = f"Cowboy Bookstore - Request #{order.id} received"
 
     # Format order items for plain text
     items_text = ""
@@ -249,10 +249,10 @@ def send_order_confirmation_email(email: str, order) -> None:
     )
 
     plain = f"""\
-Thank you for your order!
+Your order request was received.
 
 Order #{order.id}
-Placed: {order.created_at.strftime('%B %d, %Y at %I:%M %p')}
+Submitted: {order.placed_at.strftime('%B %d, %Y at %I:%M %p')}
 
 Items:
 {items_text}
@@ -263,9 +263,9 @@ Fulfillment fee: ${order.fulfillment_fee:.2f}
 Total: ${order.total:.2f}
 
 {fulfillment_text}
-Payment method: {order.payment_label}
+Payment: {order.payment_label}
 
-Your order is being prepared. You'll receive a shipping update soon.
+No payment has been collected. Availability and fulfillment still need confirmation.
 
 Questions? Reply to this email or visit Cowboy Bookstore.
 """
@@ -292,9 +292,9 @@ Questions? Reply to this email or visit Cowboy Bookstore.
     )
 
     body = f"""\
-<h2 style="margin:0 0 8px 0;font-size:22px;color:#0f172a;">Order confirmed!</h2>
+<h2 style="margin:0 0 8px 0;font-size:22px;color:#0f172a;">Request received</h2>
 <p style="margin:0 0 24px 0;font-size:14px;color:#64748b;">
-Thank you for shopping at Cowboy Bookstore. Your order has been received and is being prepared.
+Thank you for shopping at Cowboy Bookstore. We have your request; availability and the next steps still need confirmation.
 </p>
 
 <div style="background-color:#f1f5f9;border-radius:12px;padding:16px;margin:0 0 24px 0;">
@@ -303,7 +303,7 @@ Thank you for shopping at Cowboy Bookstore. Your order has been received and is 
 </div>
 
 <p style="margin:0 0 12px 0;font-size:13px;color:#94a3b8;">
-<strong>Placed:</strong> {order.created_at.strftime('%B %d, %Y at %I:%M %p')}
+<strong>Submitted:</strong> {order.placed_at.strftime('%B %d, %Y at %I:%M %p')}
 </p>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px 0;">
@@ -338,17 +338,17 @@ Thank you for shopping at Cowboy Bookstore. Your order has been received and is 
 </div>
 
 <div style="background-color:#f3f4f6;border-radius:12px;padding:16px;">
-<p style="margin:0 0 8px 0;font-size:13px;color:#374151;font-weight:600;">Payment Method</p>
+<p style="margin:0 0 8px 0;font-size:13px;color:#374151;font-weight:600;">Payment</p>
 <p style="margin:0;font-size:14px;color:#4b5563;">
 {order.payment_label}
 </p>
 </div>
 
 <p style="margin:32px 0 0 0;font-size:13px;color:#94a3b8;">
-Your order is being prepared and will ship soon. You'll receive a tracking update via email.
+No payment has been collected. Please wait for availability and fulfillment to be confirmed.
 </p>
 """
 
-    html = _base_html("Order confirmed", body)
+    html = _base_html("Order request received", body)
 
     _send_email(subject, plain, html, [email])

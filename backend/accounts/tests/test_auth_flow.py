@@ -9,6 +9,24 @@ from accounts.utils import validate_mcneese_email
 User = get_user_model()
 
 
+@pytest.mark.django_db
+def test_signup_is_unavailable_without_email_delivery(client, settings, monkeypatch):
+    monkeypatch.delenv("AUTO_ACTIVATE_ACCOUNTS", raising=False)
+    settings.EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    response = client.post(
+        "/api/auth/register/",
+        {
+            "first_name": "Pat",
+            "last_name": "Rider",
+            "email": "pat@mcneese.edu",
+            "password": "SecurePass123!",
+        },
+        format="json",
+    )
+    assert response.status_code == 503
+    assert User.objects.count() == 0
+
+
 @pytest.fixture(autouse=True)
 def _email_backend_settings(settings):
     settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"

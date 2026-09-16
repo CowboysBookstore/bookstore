@@ -35,32 +35,27 @@ class RegisterSerializer(serializers.Serializer):
     def create(self, validated_data):
         password = validated_data.pop("password")
         user = User(**validated_data)
-        user.is_active = False
-        user.set_password(password)
-        user.save()
-        activation = ActivationCode.create_for_user(user, lifetime=timedelta(hours=24))
-        expose_codes = os.getenv("EXPOSE_AUTH_CODES", "").strip().lower() in (
+        auto_activate = os.getenv("AUTO_ACTIVATE_ACCOUNTS", "false").lower() in (
             "1",
             "true",
             "yes",
             "on",
         )
+        user.is_active = auto_activate
+        user.set_password(password)
+        user.save()
+        self.activation_required = not auto_activate
+
+        if auto_activate:
+            return user
+
+        activation = ActivationCode.create_for_user(user, lifetime=timedelta(hours=24))
         try:
             send_activation_email(user.email, activation.code)
         except Exception:
-            # Email delivery can fail in production (SMTP blocked/timeouts). Don't fail registration.
+            # Keep the account inactive when email delivery is unavailable.
             logger.exception("Activation email failed to send")
-            # Emergency fallback for demos/launches: expose the code in the response when enabled.
-            if expose_codes:
-                self._activation_code = activation.code
         return user
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        code = getattr(self, "_activation_code", None)
-        if code:
-            data["activation_code"] = code
-        return data
 
 
 class ActivationVerifySerializer(serializers.Serializer):
@@ -130,18 +125,13 @@ class ForgotPasswordSerializer(serializers.Serializer):
         reset = PasswordResetCode.create_for_user(
             self.user, lifetime=timedelta(hours=24)
         )
-        expose_codes = os.getenv("EXPOSE_AUTH_CODES", "").strip().lower() in (
-            "1",
-            "true",
-            "yes",
-            "on",
-        )
         try:
             send_password_reset_email(self.user.email, reset.code)
         except Exception:
             logger.exception("Password reset email failed to send")
-            if expose_codes:
-                return {"detail": "Password reset code sent.", "reset_code": reset.code}
+            raise serializers.ValidationError(
+                "Could not send a reset code right now. Please try again later."
+            )
         return {"detail": "Password reset code sent."}
 
 
